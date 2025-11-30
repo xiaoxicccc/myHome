@@ -1,5 +1,5 @@
 <template>
-  <footer id="footer" :class="store.footerBlur ? 'blur' : null">
+  <footer id="footer" :class="[store.footerBlur ? 'blur' : null, store.coverType == '4' ? 'particle-footer' : null]">
     <Transition name="fade" mode="out-in">
       <div v-if="!store.playerState || !store.playerLrcShow" class="power">
         <span>
@@ -112,6 +112,15 @@ const siteUrl = computed(() => {
     backdrop-filter: blur(10px);
     background: rgb(0 0 0 / 25%);
     font-size: 16px;
+  }
+  &.particle-footer {
+    background-color: #ffffff33;
+    opacity: 0.7;
+    backdrop-filter: blur(15px);
+  }
+  &.particle-footer.blur {
+    background-color: #ffffff55;
+    opacity: 0.9;
   }
   .fade-enter-active,
   .fade-leave-active {

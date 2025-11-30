@@ -1,7 +1,7 @@
 <template>
   <!-- 音乐控制面板 -->
   <div
-    class="music"
+    :class="['music', store.coverType == '4' ? 'particle-music' : '']"
     @mouseenter="volumeShow = true"
     @mouseleave="volumeShow = false"
     v-show="store.musicOpenState"
@@ -112,6 +112,8 @@ const closeMusicList = () => {
 // 音乐播放暂停
 const changePlayState = () => {
   playerRef.value.playToggle();
+  // 手动切换状态，确保图标与实际状态同步
+  store.setPlayerState(!store.playerState);
 };
 
 // 音乐上下曲
@@ -159,6 +161,18 @@ watch(
   align-items: center;
   flex-direction: column;
   animation: fade 0.5s;
+  transition: background 0.3s, opacity 0.3s;
+  
+  &.particle-music {
+    background: rgba(255, 255, 255, 0.15);
+    opacity: 0.7;
+    backdrop-filter: blur(15px);
+    
+    &:hover {
+      background: rgba(255, 255, 255, 0.25);
+      opacity: 0.9;
+    }
+  }
   .btns {
     display: flex;
     align-items: center;

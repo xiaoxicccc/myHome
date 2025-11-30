@@ -1,6 +1,6 @@
 <template>
   <div
-    class="hitokoto cards"
+    :class="['hitokoto', store.coverType == '4' ? 'particle-card' : 'cards']"
     v-show="!store.musicOpenState"
     @mouseenter="openMusicShow = true"
     @mouseleave="openMusicShow = false"

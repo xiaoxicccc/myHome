@@ -1,7 +1,8 @@
 <template>
-  <div :class="store.backgroundShow ? 'cover show' : 'cover'">
+  <div :class="[store.backgroundShow ? 'cover show' : 'cover', { 'particle-background': store.coverType == '4' }]">
+    <!-- 传统图片背景 -->
     <img
-      v-show="store.imgLoadStatus"
+      v-show="store.imgLoadStatus && store.coverType != '4'"
       :src="bgUrl"
       class="bg"
       alt="cover"
@@ -9,10 +10,12 @@
       @error.once="imgLoadError"
       @animationend="imgAnimationEnd"
     />
+    <!-- Three.js交互式背景 -->
+    <ThreeBackground v-if="store.coverType == '4'" />
     <div :class="store.backgroundShow ? 'gray hidden' : 'gray'" />
     <Transition name="fade" mode="out-in">
       <a
-        v-if="store.backgroundShow && store.coverType != '3'"
+        v-if="store.backgroundShow && store.coverType != '3' && store.coverType != '4'"
         class="down"
         :href="bgUrl"
         target="_blank"
@@ -28,6 +31,7 @@ import { ref, watch, onMounted, onBeforeUnmount, h } from 'vue';
 import { ElMessage } from 'element-plus';
 import { mainStore } from "@/stores";
 import { Error } from "@icon-park/vue-next";
+import ThreeBackground from "./ThreeBackground.vue";
 
 const store = mainStore();
 const bgUrl = ref(null);
@@ -40,12 +44,18 @@ const bgRandom = Math.floor(Math.random() * 3);
 
 // 更换壁纸链接
 const changeBg = (type) => {
+  // 当选择Three.js背景时，不加载图片
+  if (type == '4') {
+    store.setImgLoadStatus(true);
+    return;
+  }
+  
   if (type == 0) {
-    // 从public/images目录下的三张背景图中随机选择一张
+    // 从assets/image目录下的三张背景图中随机选择一张
     const bgImages = [
-      '/images/background.jpg',
-      '/images/background1.png',
-      '/images/background2.jpg'
+      new URL('@/assets/image/background.jpg', import.meta.url).href,
+      new URL('@/assets/image/background1.png', import.meta.url).href,
+      new URL('@/assets/image/background2.jpg', import.meta.url).href
     ];
     bgUrl.value = bgImages[bgRandom];
   } else if (type == 1) {
@@ -85,7 +95,7 @@ const imgLoadError = () => {
       fill: "#efefef",
     }),
   });
-  bgUrl.value = `/images/background.jpg`;
+  bgUrl.value = new URL('@/assets/image/background.jpg', import.meta.url).href;
 };
 
 // 监听壁纸切换

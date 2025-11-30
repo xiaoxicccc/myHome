@@ -7,10 +7,6 @@
   <!-- 主界面 -->
   <Transition name="fade" mode="out-in">
     <main id="main" v-if="store.imgLoadStatus">
-      <!-- 向上滚动引导动画 -->
-      <div class="scroll-up" @click="scrollUp">
-        <img src="@/assets/icon/other/down.png" alt="up" class="up-icon" />
-      </div>
       <div class="container" v-show="!store.backgroundShow">
         <section class="all" v-show="!store.setOpenState">
           <MainLeft />
@@ -65,10 +61,7 @@ const getWidth = () => {
   store.setInnerWidth(window.innerWidth);
 };
 
-// 向上滚动返回上一级
-const scrollUp = () => {
-  router.back();
-};
+
 
 // 鼠标中键事件处理函数
 const handleMouseDown = (event) => {

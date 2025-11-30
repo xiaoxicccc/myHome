@@ -10,7 +10,7 @@
       </div>
     </div>
     <!-- 简介 -->
-    <div class="description cards" @click="changeBox">
+    <div :class="['description', store.coverType == '4' ? 'particle-card' : 'cards']" @click="changeBox">
       <div class="content">
         <Icon size="16">
           <QuoteLeft />
@@ -39,7 +39,7 @@ import { mainStore } from "@/stores";
 const store = mainStore();
 
 // 主页站点logo
-const siteLogo = import.meta.env.VITE_SITE_MAIN_LOGO;
+const siteLogo = new URL('@/assets/icon/other/logo.png', import.meta.url).href;
 // 站点链接
 const siteUrl = computed(() => {
   const url = import.meta.env.VITE_SITE_URL;

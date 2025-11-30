@@ -10,7 +10,9 @@
         @mouseenter="socialTip = item.tip"
         @mouseleave="socialTip = '通过这里联系我吧'"
       >
-        <img class="icon" :src="item.icon" height="24" />
+        <Icon size="24" class="icon">
+          <component :is="socialIcons[item.icon]" />
+        </Icon>
       </a>
     </div>
     <span class="tip">{{ socialTip }}</span>
@@ -19,7 +21,37 @@
 
 <script setup>
 import { ref } from 'vue';
-import socialLinks from "@/assets/socialLinks.json";
+import { Icon } from "@vicons/utils";
+import { Github, Twitter, MailBulk } from "@vicons/fa";
+
+// 社交链接数据
+const socialLinks = [
+  {
+    "name": "GitHub",
+    "url": "https://github.com",
+    "icon": "Github",
+    "tip": "GitHub"
+  },
+  {
+    "name": "Twitter",
+    "url": "https://twitter.com",
+    "icon": "Twitter",
+    "tip": "Twitter"
+  },
+  {
+    "name": "Email",
+    "url": "mailto:example@example.com",
+    "icon": "MailBulk",
+    "tip": "Email"
+  }
+];
+
+// 社交链接图标映射
+const socialIcons = {
+  Github,
+  Twitter,
+  MailBulk
+};
 
 // 社交链接提示
 const socialTip = ref("通过这里联系我吧");
@@ -62,11 +94,17 @@ const socialTip = ref("通过这里联系我吧");
       .icon {
         margin: 0 12px;
         transition: transform 0.3s;
+        fill: white;
+        color: white;
         &:hover {
           transform: scale(1.1);
         }
         &:active {
           transform: scale(1);
+        }
+        :deep(.i-icon) {
+          fill: white;
+          color: white;
         }
       }
     }

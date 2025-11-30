@@ -23,7 +23,7 @@
         <el-row class="link-all" :gutter="20">
           <el-col v-for="(item, index) in site" :span="8" :key="item">
             <div
-              class="item cards"
+              :class="['item', store.coverType == '4' ? 'particle-card' : 'cards']"
               :style="index < 3 ? 'margin-bottom: 20px' : null"
               @click="jumpLink(item)"
             >
@@ -155,7 +155,7 @@ onMounted(() => {
 
       &:hover {
         transform: scale(1.02);
-        background: rgb(0 0 0 / 40%);
+        background: rgba(218, 203, 203, 0.4);
         transition: 0.3s;
       }
 

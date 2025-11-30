@@ -55,11 +55,7 @@ export const mainStore = defineStore("main", {
     },
     // 更改播放状态
     setPlayerState(value) {
-      if (value) {
-        this.playerState = false;
-      } else {
-        this.playerState = true;
-      }
+      this.playerState = value;
     },
     // 更改歌词
     setPlayerLrc(value) {

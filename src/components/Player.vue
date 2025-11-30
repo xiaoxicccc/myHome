@@ -107,6 +107,11 @@ onMounted(() => {
       playList.value = localMusic;
       console.log("歌单生成完成:", playList.value);
       console.log("播放索引:", playIndex.value, "歌单长度:", playList.value.length, "音量:", props.volume);
+      
+      // 浏览器自动播放限制，不再尝试自动播放
+      // 确保初始状态正确设置为false（暂停状态）
+      store.setPlayerState(false);
+      console.log("播放器初始化完成，初始状态设置为暂停");
     } catch (err) {
       console.error("初始化播放器失败:", err);
       store.musicIsOk = false;
@@ -126,8 +131,8 @@ onMounted(() => {
 const onPlay = () => {
   console.log("播放");
   playIndex.value = player.value.aplayer.index;
-  // 播放状态
-  store.setPlayerState(player.value.audioRef.paused);
+  // 播放状态：paused为false表示正在播放，所以设置为true
+  store.setPlayerState(!player.value.audioRef.paused);
   // 储存播放器信息
   store.setPlayerData(playList.value[playIndex.value].name, playList.value[playIndex.value].artist);
   ElMessage({
@@ -142,7 +147,8 @@ const onPlay = () => {
 
 // 暂停
 const onPause = () => {
-  store.setPlayerState(player.value.audioRef.paused);
+  // 暂停状态：paused为true表示已暂停，所以设置为false
+  store.setPlayerState(!player.value.audioRef.paused);
 };
 
 // 音频时间更新事件
@@ -164,6 +170,8 @@ const onTimeUp = () => {
 // 切换播放暂停事件
 const playToggle = () => {
   player.value.toggle();
+  // 切换状态，确保状态与实际播放情况同步
+  store.setPlayerState(!store.playerState);
 };
 
 // 切换音量事件
