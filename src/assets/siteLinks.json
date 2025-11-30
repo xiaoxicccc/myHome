@@ -1,0 +1,50 @@
+[
+  {
+    "name": "花朵展示",
+    "link": "/flowers",
+    "icon": "Leaf",
+    "isInternal": true
+  },
+  {
+    "name": "iPad Mini",
+    "link": "/ipad-mini",
+    "icon": "Laptop",
+    "isInternal": true
+  },
+  {
+    "name": "功能3",
+    "link": "#",
+    "icon": "Book",
+    "isInternal": false
+  },
+  {
+    "name": "功能4",
+    "link": "#",
+    "icon": "Fire",
+    "isInternal": false
+  },
+  {
+    "name": "功能5",
+    "link": "#",
+    "icon": "Cloud",
+    "isInternal": false
+  },
+  {
+    "name": "功能6",
+    "link": "#",
+    "icon": "Compass",
+    "isInternal": false
+  },
+  {
+    "name": "功能7",
+    "link": "#",
+    "icon": "CompactDisc",
+    "isInternal": false
+  },
+  {
+    "name": "功能8",
+    "link": "#",
+    "icon": "LaptopCode",
+    "isInternal": false
+  }
+]
