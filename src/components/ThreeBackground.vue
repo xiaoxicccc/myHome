@@ -58,7 +58,7 @@ const initThree = () => {
 
 // 创建粒子系统
 const createParticles = () => {
-  const particleCount = 1000;
+  const particleCount = 1500;
   const geometry = new THREE.BufferGeometry();
   const positions = new Float32Array(particleCount * 3);
   const colors = new Float32Array(particleCount * 3);

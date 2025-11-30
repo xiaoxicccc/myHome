@@ -12,10 +12,10 @@
     "isInternal": true
   },
   {
-    "name": "功能3",
-    "link": "#",
+    "name": "鞋子展示",
+    "link": "/shoes",
     "icon": "Book",
-    "isInternal": false
+    "isInternal": true
   },
   {
     "name": "功能4",

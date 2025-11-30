@@ -38,10 +38,6 @@ const bgUrl = ref(null);
 const imgTimeout = ref(null);
 const emit = defineEmits(["loadComplete"]);
 
-// 壁纸随机数
-// 从0到2之间随机选择一个整数，对应三张背景图
-const bgRandom = Math.floor(Math.random() * 3);
-
 // 更换壁纸链接
 const changeBg = (type) => {
   // 当选择Three.js背景时，不加载图片
@@ -51,13 +47,13 @@ const changeBg = (type) => {
   }
   
   if (type == 0) {
-    // 从assets/image目录下的三张背景图中随机选择一张
+    // 从assets/image目录下的三张背景图中选择当前索引对应的图片
     const bgImages = [
       new URL('@/assets/image/background.jpg', import.meta.url).href,
       new URL('@/assets/image/background1.png', import.meta.url).href,
       new URL('@/assets/image/background2.jpg', import.meta.url).href
     ];
-    bgUrl.value = bgImages[bgRandom];
+    bgUrl.value = bgImages[store.bgIndex];
   } else if (type == 1) {
     bgUrl.value = "https://api.dujin.org/bing/1920.php";
   } else if (type == 2) {
@@ -100,9 +96,9 @@ const imgLoadError = () => {
 
 // 监听壁纸切换
 watch(
-  () => store.coverType,
-  (value) => {
-    changeBg(value);
+  [() => store.coverType, () => store.bgIndex],
+  ([coverType, bgIndex]) => {
+    changeBg(coverType);
   },
 );
 

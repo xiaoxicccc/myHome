@@ -5,6 +5,7 @@ import Login from '../views/Login.vue'
 import IpadMini from '../views/IpadMini.vue'
 import Index from '../views/index.vue'
 import Flowers from '../views/flowers.vue'
+import Shoes from '../views/Shoes.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -42,6 +43,11 @@ const router = createRouter({
       path: '/flowers',
       name: 'flowers',
       component: Flowers
+    },
+    {
+      path: '/shoes',
+      name: 'shoes',
+      component: Shoes
     }
   ]
 })

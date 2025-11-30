@@ -17,6 +17,36 @@
           <MoreSet />
         </section>
       </div>
+      <!-- 背景切换按钮 -->
+      <div
+        class="bg-switch"
+        v-show="!store.backgroundShow"
+        @click="toggleBackground"
+      >
+        <Icon size="20">
+          <Switch />
+        </Icon>
+        <span class="bg-switch-text">{{ store.coverType == '4' ? '粒子背景' : '默认壁纸' }}</span>
+      </div>
+      <!-- 左右切换背景按钮 -->
+      <div
+        class="bg-nav left"
+        v-show="!store.backgroundShow && store.coverType == '0' && showLeftBtn"
+        @click="prevBg"
+      >
+        <Icon size="32">
+          <Left />
+        </Icon>
+      </div>
+      <div
+        class="bg-nav right"
+        v-show="!store.backgroundShow && store.coverType == '0' && showRightBtn"
+        @click="nextBg"
+      >
+        <Icon size="32">
+          <Right />
+        </Icon>
+      </div>
       <!-- 移动端菜单按钮 -->
       <Icon
         class="menu"
@@ -41,7 +71,7 @@ import { ref, nextTick, watch, onMounted, onBeforeUnmount } from 'vue';
 import { useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import { helloInit, checkDays } from "@/utils/getTime.js";
-import { HamburgerButton, CloseSmall } from "@icon-park/vue-next";
+import { HamburgerButton, CloseSmall, Switch, Left, Right } from "@icon-park/vue-next";
 import { mainStore } from "@/stores";
 import { Icon } from "@vicons/utils";
 import Loading from "@/components/Loading.vue";
@@ -55,6 +85,17 @@ import config from "@/../package.json";
 
 const store = mainStore();
 const router = useRouter();
+
+// 左右切换按钮显示状态
+const showLeftBtn = ref(false);
+const showRightBtn = ref(false);
+
+// 背景图片数组
+const bgImages = [
+  new URL('@/assets/image/background.jpg', import.meta.url).href,
+  new URL('@/assets/image/background1.png', import.meta.url).href,
+  new URL('@/assets/image/background2.jpg', import.meta.url).href
+];
 
 // 页面宽度
 const getWidth = () => {
@@ -74,6 +115,33 @@ const handleMouseDown = (event) => {
   }
 };
 
+// 鼠标移动事件处理函数，控制左右切换按钮的显示
+const handleMouseMove = (event) => {
+  // 只有在默认壁纸模式下才显示按钮
+  if (store.coverType != '0' || store.backgroundShow) {
+    showLeftBtn.value = false;
+    showRightBtn.value = false;
+    return;
+  }
+  
+  const windowWidth = window.innerWidth;
+  const mouseX = event.clientX;
+  
+  // 鼠标移入左侧10%区域时显示左按钮
+  if (mouseX < windowWidth * 0.1) {
+    showLeftBtn.value = true;
+  } else {
+    showLeftBtn.value = false;
+  }
+  
+  // 鼠标移入右侧10%区域时显示右按钮
+  if (mouseX > windowWidth * 0.9) {
+    showRightBtn.value = true;
+  } else {
+    showRightBtn.value = false;
+  }
+};
+
 // 加载完成事件
 const loadComplete = () => {
   nextTick(() => {
@@ -81,6 +149,33 @@ const loadComplete = () => {
     helloInit();
     // 默哀模式
     checkDays();
+  });
+};
+
+// 背景切换
+const toggleBackground = () => {
+  store.coverType = store.coverType == '4' ? '0' : '4';
+  ElMessage({
+    message: store.coverType == '4' ? '已切换到粒子背景' : '已切换到默认壁纸',
+    grouping: true,
+  });
+};
+
+// 上一张背景图
+const prevBg = () => {
+  store.bgIndex = (store.bgIndex - 1 + bgImages.length) % bgImages.length;
+  ElMessage({
+    message: '已切换到上一张背景图',
+    grouping: true,
+  });
+};
+
+// 下一张背景图
+const nextBg = () => {
+  store.bgIndex = (store.bgIndex + 1) % bgImages.length;
+  ElMessage({
+    message: '已切换到下一张背景图',
+    grouping: true,
   });
 };
 
@@ -108,6 +203,9 @@ onMounted(() => {
 
   // 添加鼠标中键事件监听
   window.addEventListener("mousedown", handleMouseDown);
+  
+  // 添加鼠标移动事件监听，控制左右切换按钮的显示
+  window.addEventListener("mousemove", handleMouseMove);
 
   // 监听当前页面宽度
   getWidth();
@@ -119,6 +217,8 @@ onBeforeUnmount(() => {
   window.removeEventListener("resize", getWidth);
   // 移除鼠标中键事件监听
   window.removeEventListener("mousedown", handleMouseDown);
+  // 移除鼠标移动事件监听
+  window.removeEventListener("mousemove", handleMouseMove);
 });
 </script>
 
@@ -171,30 +271,100 @@ onBeforeUnmount(() => {
       padding: 0 2vw;
     }
   }
-  .menu {
-    position: absolute;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    top: 84%;
-    left: calc(50% - 28px);
-    width: 56px;
-    height: 34px;
-    background: rgb(0 0 0 / 20%);
-    backdrop-filter: blur(10px);
-    border-radius: 6px;
-    transition: transform 0.3s;
-    animation: fade 0.5s;
-    &:active {
-      transform: scale(0.95);
+  .bg-switch {
+      position: absolute;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      top: 20px;
+      right: 20px;
+      padding: 8px 16px;
+      background: rgb(0 0 0 / 20%);
+      backdrop-filter: blur(10px);
+      border-radius: 6px;
+      transition: all 0.3s;
+      animation: fade 0.5s;
+      cursor: pointer;
+      font-size: 14px;
+      gap: 8px;
+      &:hover {
+        transform: scale(1.05);
+        background: rgb(0 0 0 / 30%);
+      }
+      &:active {
+        transform: scale(0.95);
+      }
+      .i-icon {
+        transform: translateY(1px);
+      }
+      .bg-switch-text {
+        white-space: nowrap;
+      }
     }
-    .i-icon {
-      transform: translateY(2px);
+    
+    .bg-nav {
+      position: absolute;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 50px;
+      height: 50px;
+      background: rgb(0 0 0 / 20%);
+      backdrop-filter: blur(10px);
+      border-radius: 50%;
+      transition: all 0.3s;
+      animation: fade 0.3s;
+      cursor: pointer;
+      opacity: 0.8;
+      
+      &:hover {
+        transform: translateY(-50%) scale(1.1);
+        background: rgb(0 0 0 / 30%);
+        opacity: 1;
+      }
+      
+      &:active {
+        transform: translateY(-50%) scale(0.95);
+      }
+      
+      &.left {
+        left: 20px;
+      }
+      
+      &.right {
+        right: 20px;
+      }
+      
+      .i-icon {
+        transform: translateY(2px);
+      }
     }
-    @media (min-width: 721px) {
-      display: none;
+    .menu {
+      position: absolute;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      top: 84%;
+      left: calc(50% - 28px);
+      width: 56px;
+      height: 34px;
+      background: rgb(0 0 0 / 20%);
+      backdrop-filter: blur(10px);
+      border-radius: 6px;
+      transition: transform 0.3s;
+      animation: fade 0.5s;
+      &:active {
+        transform: scale(0.95);
+      }
+      .i-icon {
+        transform: translateY(2px);
+      }
+      @media (min-width: 721px) {
+        display: none;
+      }
     }
-  }
   @media (max-height: 720px) {
     overflow-y: auto;
     overflow-x: hidden;
