@@ -1,0 +1,1090 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demo - 原生JS复刻版</title>
+    <!-- 引入GSAP和ScrollTrigger -->
+    <script src="https://unpkg.com/gsap@3.13.0/dist/gsap.min.js"></script>
+    <script src="https://unpkg.com/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
+    <style>
+        /* 基础样式重置 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* 自定义字体 */
+        @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&family=Syncopate:wght@400;700&display=swap');
+
+        /* 全局样式 */
+        body {
+            font-family: 'Manrope', sans-serif;
+            background-color: #050505;
+            color: #f5f5f5;
+            overflow-x: hidden;
+            cursor: none;
+        }
+
+        .font-display {
+            font-family: 'Syncopate', sans-serif;
+        }
+
+        /* 自定义光标 */
+        #cursor {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 2px;
+            height: 2px;
+            background: white;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            transform: translate(-50%, -50%);
+            mix-blend-mode: difference;
+        }
+
+        #cursor-follower {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 40px;
+            height: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9998;
+            transform: translate(-50%, -50%);
+            transition: transform 0.3s ease-out;
+        }
+
+        /* 加载动画 */
+        #loader {
+            position: fixed;
+            inset: 0;
+            z-index: 100;
+            background: #0a0a0a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        #loader-content {
+            text-align: center;
+            overflow: hidden;
+        }
+
+        #loader-text {
+            font-size: 12vw;
+            font-weight: bold;
+            font-family: 'Syncopate', sans-serif;
+            line-height: 0.8;
+        }
+
+        /* 导航栏 */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 1.5rem 2.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 50;
+            mix-blend-mode: difference;
+            color: white;
+        }
+
+        nav .font-display {
+            font-weight: bold;
+            font-size: 1.25rem;
+            letter-spacing: 0.1em;
+            cursor: pointer;
+        }
+
+        nav .nav-links {
+            display: none;
+            gap: 2.5rem;
+        }
+
+        nav .nav-links a {
+            text-decoration: none;
+            color: white;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            transition: color 0.3s ease;
+        }
+
+        nav .nav-links a:hover {
+            color: #9ca3af;
+        }
+
+        nav .menu-btn {
+            display: block;
+        }
+
+        /* 英雄区域 */
+        #hero {
+            position: relative;
+            height: 100vh;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            padding-top: 5rem;
+        }
+
+        #hero .hero-bg {
+            position: absolute;
+            inset: 0;
+            z-index: 0;
+        }
+
+        #hero .hero-bg img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0.6;
+            transform: scale(1.25);
+        }
+
+        #hero .hero-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to top, #050505, transparent, transparent);
+            opacity: 0.9;
+        }
+
+        #hero .hero-content {
+            position: relative;
+            z-index: 10;
+            text-align: center;
+            padding: 0 1rem;
+            max-width: 7xl;
+        }
+
+        #hero-sub {
+            font-size: 0.875rem;
+            color: #9ca3af;
+            text-transform: uppercase;
+            letter-spacing: 0.5em;
+            margin-bottom: 1.5rem;
+            opacity: 0;
+            transform: translateY(2.5rem);
+        }
+
+        #hero-title {
+            font-size: 12vw;
+            line-height: 0.85;
+            font-family: 'Syncopate', sans-serif;
+            font-weight: bold;
+            text-transform: uppercase;
+            mix-blend-mode: screen;
+            opacity: 0;
+            transform: translateY(5rem);
+            cursor: text;
+        }
+
+        #hero .scroll-indicator {
+            position: absolute;
+            bottom: 2.5rem;
+            left: 2.5rem;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        #hero .scroll-indicator span {
+            font-size: 0.75rem;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+        }
+
+        #hero .scroll-indicator .line {
+            width: 1px;
+            height: 4rem;
+            background: #4b5563;
+            animation: pulse 2s infinite;
+        }
+
+        /* 滚动文字 */
+        #marquee {
+            position: relative;
+            display: flex;
+            overflow: hidden;
+            white-space: nowrap;
+            background: #111827;
+            padding: 2.5rem 0;
+            transform: rotate(-2deg) scale(1.1) translateX(-5%);
+            z-index: 20;
+            border-top: 1px solid #1f2937;
+            border-bottom: 1px solid #1f2937;
+        }
+
+        #marquee-inner {
+            position: relative;
+            display: flex;
+            white-space: nowrap;
+        }
+
+        .marquee-part {
+            display: flex;
+            gap: 2.5rem;
+            align-items: center;
+            padding-right: 2.5rem;
+        }
+
+        .marquee-part:last-child {
+            position: absolute;
+            left: 100%;
+            top: 0;
+            padding-left: 2.5rem;
+        }
+
+        .marquee-part p {
+            font-size: 8vw;
+            font-family: 'Syncopate', sans-serif;
+            font-weight: bold;
+            -webkit-text-stroke: 1px #555;
+            color: transparent;
+            opacity: 0.5;
+            text-transform: uppercase;
+        }
+
+        /* 关于我们 */
+        #about {
+            position: relative;
+            min-height: 100vh;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 6rem 1.5rem;
+            background: #050505;
+        }
+
+        #about .about-content {
+            max-width: 5xl;
+        }
+
+        #about .about-subtitle {
+            font-size: 0.875rem;
+            color: #6366f1;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            margin-bottom: 2rem;
+            font-weight: 600;
+        }
+
+        #about-text {
+            font-size: clamp(2rem, 5vw, 4.5rem);
+            line-height: 1.1;
+            font-weight: 500;
+            color: white;
+            margin-bottom: 5rem;
+        }
+
+        #about .about-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2.5rem;
+        }
+
+        @media (min-width: 768px) {
+            #about .about-info {
+                flex-direction: row;
+                gap: 8rem;
+            }
+        }
+
+        #about .about-column h3 {
+            font-size: 1.5rem;
+            font-family: 'Syncopate', sans-serif;
+            text-transform: uppercase;
+            color: #9ca3af;
+            margin-bottom: 1rem;
+        }
+
+        #about .about-column ul {
+            color: #6b7280;
+            font-size: 1.125rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        /* 水平画廊 */
+        #gallery-section {
+            overflow: hidden;
+        }
+
+        #gallery-trigger {
+            height: 100vh;
+        }
+
+        #gallery-container {
+            position: relative;
+            width: 400vw;
+            height: 100%;
+            display: flex;
+            background: #111827;
+        }
+
+        .gallery-panel {
+            height: 100%;
+            border-right: 1px solid #1f2937;
+        }
+
+        .gallery-intro {
+            width: 100vw;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 0 5rem;
+        }
+
+        .gallery-intro h2 {
+            font-size: 10vw;
+            line-height: 0.8;
+            font-family: 'Syncopate', sans-serif;
+            font-weight: bold;
+            text-transform: uppercase;
+            color: #e5e7eb;
+        }
+
+        .gallery-intro .intro-divider {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 2.5rem;
+        }
+
+        .gallery-intro .line {
+            width: 5rem;
+            height: 1px;
+            background: white;
+        }
+
+        .gallery-intro .year {
+            font-size: 1.25rem;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+        }
+
+        .project-item {
+            width: 60vw;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 5rem;
+            position: relative;
+        }
+
+        .project-item .project-card {
+            position: relative;
+            width: 100%;
+            height: 70vh;
+            overflow: hidden;
+            border-radius: 1rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+        }
+
+        .project-item .project-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.7s ease;
+            filter: grayscale(100%);
+        }
+
+        .project-item .project-card:hover .project-image {
+            transform: scale(1.1);
+            filter: grayscale(0%);
+        }
+
+        .project-item .project-gradient {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.9), transparent, transparent);
+        }
+
+        .project-item .project-content {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 5rem;
+            z-index: 10;
+        }
+
+        .project-item .project-content-top {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .project-item .project-content-top .line {
+            width: 3rem;
+            height: 1px;
+            background: #facc15;
+        }
+
+        .project-item .project-content-top span {
+            font-size: 0.75rem;
+            color: #facc15;
+            text-transform: uppercase;
+            letter-spacing: 0.25em;
+            font-weight: bold;
+        }
+
+        .project-item .project-title {
+            font-size: 3rem;
+            font-family: 'Syncopate', sans-serif;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-bottom: 1rem;
+        }
+
+        .project-item .project-year {
+            font-size: 1rem;
+            color: #d1d5db;
+        }
+
+        .project-item .project-number {
+            position: absolute;
+            bottom: 2.5rem;
+            left: 2.5rem;
+            font-size: 10rem;
+            font-family: 'Syncopate', sans-serif;
+            font-weight: bold;
+            color: rgba(255, 255, 255, 0.05);
+            pointer-events: none;
+            user-select: none;
+            z-index: -1;
+        }
+
+        .gallery-end {
+            width: 40vw;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #4f46e5;
+            color: white;
+        }
+
+        .gallery-end-content {
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .gallery-end-content h3 {
+            font-size: 3.75rem;
+            font-family: 'Syncopate', sans-serif;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-bottom: 1rem;
+        }
+
+        .gallery-end-content .circle {
+            width: 5rem;
+            height: 5rem;
+            border-radius: 50%;
+            border: 1px solid white;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .gallery-end-content:hover .circle {
+            background: white;
+            color: #4f46e5;
+        }
+
+        .gallery-end-content .circle span {
+            font-size: 1.5rem;
+        }
+
+        /* 页脚 */
+        #footer-spacer {
+            height: 80vh;
+            width: 100%;
+            position: relative;
+            z-index: 0;
+        }
+
+        #footer {
+            position: fixed;
+            bottom: 0;
+            height: 80vh;
+            width: 100%;
+            background: #050505;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 2.5rem 5rem;
+            border-top: 1px solid #1f2937;
+            z-index: 10;
+        }
+
+        #footer .footer-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        #footer .footer-title {
+            font-size: 12vw;
+            line-height: 0.8;
+            font-family: 'Syncopate', sans-serif;
+            font-weight: bold;
+            text-transform: uppercase;
+            mix-blend-mode: difference;
+        }
+
+        #footer .footer-btn {
+            width: 8rem;
+            height: 8rem;
+            border-radius: 50%;
+            border: 1px solid #374151;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            display: none;
+        }
+
+        #footer .footer-btn:hover {
+            background: white;
+            color: black;
+        }
+
+        #footer .footer-btn svg {
+            width: 3rem;
+            height: 3rem;
+            transition: transform 0.3s ease;
+        }
+
+        #footer .footer-btn:hover svg {
+            transform: rotate(45deg);
+        }
+
+        #footer .footer-bottom {
+            display: flex;
+            flex-direction: column;
+            gap: 2.5rem;
+        }
+
+        @media (min-width: 768px) {
+            #footer .footer-bottom {
+                flex-direction: row;
+                justify-content: space-between;
+            }
+        }
+
+        #footer .footer-links {
+            display: flex;
+            gap: 2rem;
+        }
+
+        #footer .footer-links a {
+            font-size: 1.125rem;
+            text-transform: uppercase;
+            color: #9ca3af;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        #footer .footer-links a:hover {
+            color: white;
+        }
+
+        #footer .footer-copyright {
+            text-align: right;
+            color: #6b7280;
+            font-size: 0.875rem;
+        }
+
+        /* 悬停触发器 */
+        .hover-trigger {
+            cursor: pointer;
+        }
+
+        /* 文本选择触发器 */
+        .cursor-text-trigger {
+            cursor: text;
+        }
+
+        /* 动画 */
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        /* 响应式设计 */
+        @media (min-width: 768px) {
+            nav .nav-links {
+                display: flex;
+            }
+
+            nav .menu-btn {
+                display: none;
+            }
+
+            #hero .scroll-indicator {
+                display: flex;
+            }
+
+            #footer .footer-btn {
+                display: flex;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 自定义光标 -->
+    <div id="cursor"></div>
+    <div id="cursor-follower"></div>
+
+    <!-- 加载动画 -->
+    <div id="loader">
+        <div id="loader-content">
+            <h1 id="loader-text">0%</h1>
+            <p class="text-sm uppercase tracking-widest text-neutral-500 mt-4">初始化环境</p>
+        </div>
+    </div>
+
+    <!-- 导航栏 -->
+    <nav>
+        <div class="font-display font-bold text-xl tracking-wider cursor-pointer hover-trigger">AETHER®</div>
+        <div class="nav-links">
+            <a href="#work" class="text-sm uppercase tracking-widest hover:text-neutral-400 transition-colors hover-trigger">作品</a>
+            <a href="#agency" class="text-sm uppercase tracking-widest hover:text-neutral-400 transition-colors hover-trigger">机构</a>
+            <a href="#news" class="text-sm uppercase tracking-widest hover:text-neutral-400 transition-colors hover-trigger">新闻</a>
+            <a href="#contact" class="text-sm uppercase tracking-widest hover:text-neutral-400 transition-colors hover-trigger">联系</a>
+        </div>
+        <button class="menu-btn hover-trigger">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="12" x2="20" y2="12"></line><line x1="4" y1="6" x2="20" y2="6"></line><line x1="4" y1="18" x2="20" y2="18"></line></svg>
+        </button>
+    </nav>
+
+    <main>
+        <!-- 英雄区域 -->
+        <section id="hero">
+            <div class="hero-bg">
+                <img id="hero-img" src="https://picsum.photos/id/26/1920/1080" alt="Abstract architecture">
+                <div class="hero-overlay"></div>
+            </div>
+            <div class="hero-content">
+                <p id="hero-sub">数字创新工作室</p>
+                <h1 id="hero-title">
+                    超越<br/>现实
+                </h1>
+            </div>
+            <div class="scroll-indicator">
+                <span>滚动探索</span>
+                <div class="line"></div>
+            </div>
+        </section>
+
+        <!-- 滚动文字 -->
+        <div id="marquee">
+            <div id="marquee-inner">
+                <div class="marquee-part">
+                    <p class="text-[8vw] font-display font-bold stroke-text opacity-50 uppercase">
+                       设计 • 策略 • 开发 • 品牌 •
+                    </p>
+                </div>
+                <div class="marquee-part">
+                    <p class="text-[8vw] font-display font-bold stroke-text opacity-50 uppercase">
+                       设计 • 策略 • 开发 • 品牌 •
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 关于我们 -->
+        <section id="about">
+            <div class="about-content">
+                <p class="about-subtitle">我们的理念</p>
+                <p id="about-text" class="cursor-text-trigger">
+                    我们创造融合美学完美与技术卓越的数字体验。我们的使命是重新定义网络的边界，将静态像素转化为流畅、生动的情感，吸引全球观众。
+                </p>
+                <div class="about-info">
+                    <div class="about-column">
+                        <h3>服务</h3>
+                        <ul>
+                            <li>艺术指导</li>
+                            <li>WebGL开发</li>
+                            <li>创意策略</li>
+                            <li>动态设计</li>
+                        </ul>
+                    </div>
+                    <div class="about-column">
+                        <h3>客户</h3>
+                        <ul>
+                            <li>谷歌</li>
+                            <li>耐克</li>
+                            <li>Spotify</li>
+                            <li>LVMH</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 水平画廊 -->
+        <section id="gallery-section">
+            <div id="gallery-trigger">
+                <div id="gallery-container">
+                    <!-- 介绍面板 -->
+                    <div class="gallery-panel gallery-intro">
+                        <h2>精选<br/>作品</h2>
+                        <div class="intro-divider">
+                            <div class="line"></div>
+                            <span class="year">2023 — 2024</span>
+                        </div>
+                    </div>
+                    
+                    <!-- 项目1 -->
+                    <div class="gallery-panel project-item">
+                        <div class="project-card hover-trigger">
+                            <img src="https://picsum.photos/id/15/800/1000" class="project-image" alt="Neon Tokyo">
+                            <div class="project-gradient"></div>
+                            <div class="project-content">
+                                <div class="project-content-top">
+                                    <div class="line"></div>
+                                    <span>沉浸式网页</span>
+                                </div>
+                                <h3 class="project-title">霓虹东京</h3>
+                                <p class="project-year">2023</p>
+                            </div>
+                        </div>
+                        <div class="project-number">01</div>
+                    </div>
+
+                    <!-- 项目2 -->
+                    <div class="gallery-panel project-item">
+                        <div class="project-card hover-trigger">
+                            <img src="https://picsum.photos/id/28/800/1000" class="project-image" alt="Abstract Flow">
+                            <div class="project-gradient"></div>
+                            <div class="project-content">
+                                <div class="project-content-top">
+                                    <div class="line"></div>
+                                    <span>WebGL实验</span>
+                                </div>
+                                <h3 class="project-title">抽象流动</h3>
+                                <p class="project-year">2023</p>
+                            </div>
+                        </div>
+                        <div class="project-number">02</div>
+                    </div>
+
+                    <!-- 项目3 -->
+                    <div class="gallery-panel project-item">
+                        <div class="project-card hover-trigger">
+                            <img src="https://picsum.photos/id/24/800/1000" class="project-image" alt="Cyber Punk">
+                            <div class="project-gradient"></div>
+                            <div class="project-content">
+                                <div class="project-content-top">
+                                    <div class="line"></div>
+                                    <span>电子商务</span>
+                                </div>
+                                <h3 class="project-title">赛博朋克</h3>
+                                <p class="project-year">2024</p>
+                            </div>
+                        </div>
+                        <div class="project-number">03</div>
+                    </div>
+
+                    <!-- 项目4 -->
+                    <div class="gallery-panel project-item">
+                        <div class="project-card hover-trigger">
+                            <img src="https://picsum.photos/id/48/800/1000" class="project-image" alt="Minimalist">
+                            <div class="project-gradient"></div>
+                            <div class="project-content">
+                                <div class="project-content-top">
+                                    <div class="line"></div>
+                                    <span>作品集</span>
+                                </div>
+                                <h3 class="project-title">极简主义</h3>
+                                <p class="project-year">2024</p>
+                            </div>
+                        </div>
+                        <div class="project-number">04</div>
+                    </div>
+
+                    <!-- 结束面板 -->
+                    <div class="gallery-panel gallery-end hover-trigger">
+                        <div class="gallery-end-content">
+                            <h3>查看全部</h3>
+                            <div class="circle">
+                                <span>→</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 页脚 -->
+        <div id="footer-spacer"></div>
+        <div id="footer">
+            <div class="footer-top">
+                <div>
+                    <h2 class="footer-title">让我们谈谈</h2>
+                </div>
+                <button class="footer-btn hover-trigger">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg>
+                </button>
+            </div>
+            <div class="footer-bottom">
+                <div class="footer-links">
+                    <a href="#" class="text-lg uppercase text-neutral-400 hover:text-white transition-colors hover-trigger">Instagram</a>
+                    <a href="#" class="text-lg uppercase text-neutral-400 hover:text-white transition-colors hover-trigger">Twitter</a>
+                    <a href="#" class="text-lg uppercase text-neutral-400 hover:text-white transition-colors hover-trigger">LinkedIn</a>
+                    <a href="#" class="text-lg uppercase text-neutral-400 hover:text-white transition-colors hover-trigger">Awwwards</a>
+                </div>
+                <div class="footer-copyright">
+                    <p class="text-neutral-500 text-sm">© 2024 Aether Studios</p>
+                    <p class="text-neutral-500 text-sm">保留所有权利</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // 注册GSAP插件
+        gsap.registerPlugin(ScrollTrigger);
+
+        // --- 1. 加载动画逻辑 ---
+        function initLoader(onComplete) {
+            const loaderText = document.getElementById("loader-text");
+            const loaderContainer = document.getElementById("loader");
+            const loaderContent = document.getElementById("loader-content");
+            
+            if (!loaderText || !loaderContainer || !loaderContent) return;
+
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += Math.floor(Math.random() * 10) + 1;
+                if (progress >= 100) {
+                    progress = 100;
+                    clearInterval(interval);
+                    
+                    loaderText.innerText = "100%";
+                    
+                    // 加载动画退出
+                    const tl = gsap.timeline({
+                        onComplete: onComplete
+                    });
+                    
+                    tl.to(loaderContent, {
+                        y: -2.5rem,
+                        opacity: 0,
+                        duration: 1,
+                        ease: "power4.inOut",
+                        delay: 0.5
+                    })
+                    .to(loaderContainer, {
+                        yPercent: -100,
+                        duration: 1.2,
+                        ease: "power4.inOut"
+                    });
+                } else {
+                    loaderText.innerText = `${progress}%`;
+                }
+            }, 50);
+        }
+
+        // --- 2. 自定义光标逻辑 ---
+        function initCursor() {
+            const cursor = document.getElementById("cursor");
+            const follower = document.getElementById("cursor-follower");
+            if (!cursor || !follower) return;
+
+            // 移动逻辑
+            window.addEventListener("mousemove", (e) => {
+                gsap.to(cursor, { x: e.clientX, y: e.clientY, duration: 0.1, ease: "power2.out" });
+                gsap.to(follower, { x: e.clientX, y: e.clientY, duration: 0.5, ease: "power2.out" });
+            });
+
+            // 悬停状态
+            const hoverElements = document.querySelectorAll(".hover-trigger");
+            hoverElements.forEach(el => {
+                el.addEventListener("mouseenter", () => {
+                    gsap.to(cursor, { scale: 0.5, opacity: 0, duration: 0.3 });
+                    gsap.to(follower, { scale: 3, backgroundColor: 'rgba(255, 255, 255, 0.1)', borderColor: 'transparent', duration: 0.3 });
+                });
+                el.addEventListener("mouseleave", () => {
+                    gsap.to(cursor, { scale: 1, opacity: 1, duration: 0.3 });
+                    gsap.to(follower, { scale: 1, backgroundColor: 'transparent', borderColor: 'rgba(255, 255, 255, 0.5)', duration: 0.3 });
+                });
+            });
+
+            // 文本选择状态
+            const textTriggers = document.querySelectorAll(".cursor-text-trigger");
+            textTriggers.forEach(el => {
+                el.addEventListener("mouseenter", () => {
+                    gsap.to(cursor, { height: 30, width: 2, borderRadius: 0, duration: 0.3 });
+                    gsap.to(follower, { scale: 0, duration: 0.3 });
+                });
+                el.addEventListener("mouseleave", () => {
+                    gsap.to(cursor, { height: 2, width: 2, borderRadius: '50%', duration: 0.3 });
+                    gsap.to(follower, { scale: 1, duration: 0.3 });
+                });
+            });
+        }
+
+        // --- 3. 英雄区域动画 ---
+        function initHero() {
+            const title = document.getElementById("hero-title");
+            const sub = document.getElementById("hero-sub");
+            const img = document.getElementById("hero-img");
+            const heroSection = document.getElementById("hero");
+
+            if (title && sub && img && heroSection) {
+                const tl = gsap.timeline();
+                
+                tl.to(title, { y: 0, opacity: 1, duration: 1.5, ease: "power4.out" })
+                  .to(sub, { y: 0, opacity: 1, duration: 1, ease: "power2.out" }, "-=1")
+                  .to(img, { scale: 1, opacity: 0.6, duration: 2, ease: "expo.out" }, "-=1.5");
+
+                // 视差效果
+                gsap.to(img, {
+                  yPercent: 30,
+                  ease: "none",
+                  scrollTrigger: {
+                    trigger: heroSection,
+                    start: "top top",
+                    end: "bottom top",
+                    scrub: true
+                  }
+                });
+            }
+        }
+
+        // --- 4. 滚动文字动画 ---
+        function initMarquee() {
+            const slider = document.getElementById("marquee-inner");
+            const parts = document.querySelectorAll(".marquee-part");
+            if (!slider || parts.length < 2) return;
+
+            let xPercent = 0;
+            let direction = -1;
+
+            // 根据滚动改变方向
+            gsap.to(slider, {
+                scrollTrigger: {
+                    trigger: document.documentElement,
+                    start: 0,
+                    end: window.innerHeight,
+                    scrub: 0.25,
+                    onUpdate: (e) => (direction = e.direction * -1)
+                },
+                x: "-=300px",
+            });
+
+            const animate = () => {
+                if (xPercent <= -100) xPercent = 0;
+                if (xPercent > 0) xPercent = -100;
+                
+                gsap.set(parts, { xPercent: xPercent });
+                xPercent += 0.05 * direction;
+                requestAnimationFrame(animate);
+            };
+            requestAnimationFrame(animate);
+        }
+
+        // --- 5. 关于我们文字渐显 ---
+        function initAbout() {
+            const textElement = document.getElementById("about-text");
+            const section = document.getElementById("about");
+            
+            if (textElement && section) {
+                // 分割文字
+                const text = textElement.innerText;
+                textElement.innerHTML = '';
+                text.split(' ').forEach(word => {
+                    const span = document.createElement('span');
+                    span.innerText = word + ' ';
+                    span.style.opacity = '0.2';
+                    span.style.transition = 'opacity 0.2s';
+                    textElement.appendChild(span);
+                });
+
+                const spans = Array.from(textElement.children);
+                gsap.to(spans, {
+                    opacity: 1,
+                    stagger: 0.1,
+                    scrollTrigger: {
+                        trigger: section,
+                        start: "top 70%",
+                        end: "bottom 70%",
+                        scrub: true,
+                    }
+                });
+            }
+        }
+
+        // --- 6. 水平画廊 ---
+        function initGallery() {
+            const container = document.getElementById("gallery-container");
+            const trigger = document.getElementById("gallery-trigger");
+
+            if (container && trigger) {
+                // 动态计算end值：使用1.8倍视口高度，确保在不同设备上都有良好的滚动体验
+                const viewportHeight = window.innerHeight;
+                const endValue = viewportHeight * 1.8; // 1.8倍视口高度，提供足够的滚动空间
+                
+                gsap.to(container, {
+                    x: "-280vw", // 精确移动距离，确保滚动结束时正好显示"查看全部"面板
+                    ease: "none",
+                    willChange: "transform", // 启用硬件加速，减少闪烁
+                    scrollTrigger: {
+                        trigger: trigger,
+                        start: "top top", // 明确动画开始位置：触发器顶部与视口顶部对齐
+                        pin: true,
+                        anticipatePin: 1, // 优化固定元素的表现，减少闪烁
+                        scrub: 0.8, // 调整scrub值，减少动画滞后，提高流畅度
+                        end: `+=${endValue}`, // 使用动态计算的值，与视口高度相关
+                        invalidateOnRefresh: true, // 窗口大小变化时重新计算，确保响应式表现
+                    }
+                });
+            }
+        }
+
+        // --- 主初始化 ---
+        window.addEventListener("DOMContentLoaded", () => {
+            // 启动加载动画
+            initLoader(() => {
+                // 加载完成后初始化所有动画
+                initCursor();
+                initHero();
+                initMarquee();
+                initAbout();
+                initGallery();
+            });
+        });
+    </script>
+</body>
+</html>

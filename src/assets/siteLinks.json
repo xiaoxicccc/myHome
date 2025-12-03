@@ -12,16 +12,16 @@
     "isInternal": true
   },
   {
+    "name": "殿堂传奇",
+    "link": "/lens",
+    "icon": "Fire",
+    "isInternal": true
+  },
+  {
     "name": "鞋子展示",
     "link": "/shoes",
     "icon": "Book",
     "isInternal": true
-  },
-  {
-    "name": "功能4",
-    "link": "#",
-    "icon": "Fire",
-    "isInternal": false
   },
   {
     "name": "功能5",

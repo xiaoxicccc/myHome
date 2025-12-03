@@ -1,5 +1,5 @@
 <template>
-  <div :class="store.mobileOpenState ? 'left hidden' : 'left'">
+  <div :class="store.mobileOpenState ? 'left custom-hidden' : 'left'">
     <Message />
     <SocialLinks />
   </div>
@@ -18,7 +18,7 @@ const store = mainStore();
   width: 50%;
   margin-right: 10px;
   transform: translateY(20px);
-  &.hidden {
+  &.custom-hidden {
     display: none;
   }
   @media (max-width: 720px) {

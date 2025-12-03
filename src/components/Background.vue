@@ -12,10 +12,12 @@
     />
     <!-- Three.js交互式背景 -->
     <ThreeBackground v-if="store.coverType == '4'" />
-    <div :class="store.backgroundShow ? 'gray hidden' : 'gray'" />
+    <!-- 音乐粒子背景 -->
+    <MusicParticleBackground v-if="store.coverType == '5'" />
+    <div :class="store.backgroundShow ? 'gray custom-hidden' : 'gray'" />
     <Transition name="fade" mode="out-in">
       <a
-        v-if="store.backgroundShow && store.coverType != '3' && store.coverType != '4'"
+        v-if="store.backgroundShow && store.coverType != '3' && store.coverType != '4' && store.coverType != '5'"
         class="down"
         :href="bgUrl"
         target="_blank"
@@ -32,6 +34,7 @@ import { ElMessage } from 'element-plus';
 import { mainStore } from "@/stores";
 import { Error } from "@icon-park/vue-next";
 import ThreeBackground from "./ThreeBackground.vue";
+import MusicParticleBackground from "./MusicParticleBackground.vue";
 
 const store = mainStore();
 const bgUrl = ref(null);
@@ -40,9 +43,14 @@ const emit = defineEmits(["loadComplete"]);
 
 // 更换壁纸链接
 const changeBg = (type) => {
-  // 当选择Three.js背景时，不加载图片
-  if (type == '4') {
-    store.setImgLoadStatus(true);
+  // 当选择Three.js背景或音乐粒子背景时，不加载图片
+  if (type == '4' || type == '5') {
+    // 延迟设置加载状态，确保至少显示0.5秒的loading状态
+    setTimeout(() => {
+      store.setImgLoadStatus(true);
+      // 触发加载完成事件
+      emit("loadComplete");
+    }, 500);
     return;
   }
   
@@ -155,7 +163,7 @@ onBeforeUnmount(() => {
       radial-gradient(rgba(0, 0, 0, 0) 33%, rgba(0, 0, 0, 0.3) 166%);
 
     transition: 1.5s;
-    &.hidden {
+    &.custom-hidden {
       opacity: 0;
       transition: 1.5s;
     }

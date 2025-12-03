@@ -3,7 +3,7 @@
     <Transition name="fade" mode="out-in">
       <div v-if="!store.playerState || !store.playerLrcShow" class="power">
         <span>
-          <span :class="startYear < fullYear ? 'c-hidden' : 'hidden'">Copyright&nbsp;</span>
+          <span :class="startYear < fullYear ? 'c-hidden' : 'custom-hidden'">Copyright&nbsp;</span>
           &copy;
           <span v-if="startYear < fullYear"
             class="site-start">
@@ -14,7 +14,7 @@
           <a :href="siteUrl">{{ siteAuthor }}</a>
         </span>
         <!-- 以下信息请不要修改哦 -->
-        <span class="hidden">
+        <span class="custom-hidden">
           &amp;&nbsp;Made&nbsp;by
           <a :href="config.github" target="_blank">
             {{ config.author }}
@@ -138,7 +138,7 @@ const siteUrl = computed(() => {
     }
   }
   @media (max-width: 480px) {
-    .hidden {
+    .custom-hidden {
       display: none;
     }
   }

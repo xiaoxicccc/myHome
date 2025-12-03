@@ -6,6 +6,9 @@ import IpadMini from '../views/IpadMini.vue'
 import Index from '../views/index.vue'
 import Flowers from '../views/flowers.vue'
 import Shoes from '../views/Shoes.vue'
+import Demo from '../views/Demo.vue'
+import DemoCardStack from '../views/DemoCardStack.vue'
+import lens from '../views/lens.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -48,6 +51,21 @@ const router = createRouter({
       path: '/shoes',
       name: 'shoes',
       component: Shoes
+    },
+    {
+      path: '/demo',
+      name: 'demo',
+      component: Demo
+    },
+    {
+      path: '/demo-card-stack',
+      name: 'demo-card-stack',
+      component: DemoCardStack
+    },
+    {
+      path: '/lens',
+      name: 'lens',
+      component: lens
     }
   ]
 })
@@ -57,8 +75,11 @@ router.beforeEach((to, from, next) => {
   // 检查用户是否已登录
   const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
   
-  // 如果用户未登录，且访问的不是登录页面，则跳转到登录页面
-  if (!isLoggedIn && to.path !== '/login') {
+  // 白名单页面，不需要登录即可访问
+  const whiteList = ['/login'];
+  
+  // 如果用户未登录，且访问的不是白名单页面，则跳转到登录页面
+  if (!isLoggedIn && !whiteList.includes(to.path)) {
     next('/login');
   } else {
     // 如果用户已登录，且访问的是登录页面，则跳转到首页

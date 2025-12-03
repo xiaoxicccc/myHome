@@ -27,4 +27,11 @@ router.afterEach(() => {
   cursorInit();
 });
 
+// 全局禁用鼠标右键
+const disableRightClick = (event) => {
+  event.preventDefault();
+};
+
+document.addEventListener('contextmenu', disableRightClick);
+
 app.mount('#app')

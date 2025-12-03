@@ -97,6 +97,32 @@ const playerData = reactive({
   id: import.meta.env.VITE_SONG_ID,
 });
 
+// 保存之前的背景类型
+const prevCoverType = ref(store.coverType);
+
+// 监听音乐播放状态，自动切换背景
+watch(
+  () => store.playerState,
+  (isPlaying) => {
+    console.log('音乐播放状态变更:', isPlaying);
+    if (isPlaying) {
+      // 播放时，保存当前背景类型并切换到音乐粒子背景
+      if (store.coverType !== '5') {
+        prevCoverType.value = store.coverType;
+        store.coverType = '5';
+        console.log('切换到音乐粒子背景，之前的背景类型:', prevCoverType.value);
+      }
+    } else {
+      // 暂停时，恢复之前的背景类型
+      if (store.coverType === '5') {
+        store.coverType = prevCoverType.value;
+        console.log('恢复背景类型:', prevCoverType.value);
+      }
+    }
+  },
+  { immediate: true } // 立即执行监听
+);
+
 // 开启播放列表
 const openMusicList = () => {
   musicListShow.value = true;
@@ -112,8 +138,8 @@ const closeMusicList = () => {
 // 音乐播放暂停
 const changePlayState = () => {
   playerRef.value.playToggle();
-  // 手动切换状态，确保图标与实际状态同步
-  store.setPlayerState(!store.playerState);
+  // 不需要手动切换状态，APlayer的onPlay和onPause事件会自动更新状态
+  // store.setPlayerState(!store.playerState);
 };
 
 // 音乐上下曲

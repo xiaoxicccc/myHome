@@ -1,0 +1,1080 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ponpon Mania</title>
+    <style>
+        /* Reset and Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: sans-serif;
+            overflow: hidden;
+        }
+        
+        /* Main App Container */
+        #app {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            background-color: black;
+            color: black;
+            font-family: sans-serif;
+        }
+        
+        /* Background Layer */
+        #background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 0;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .background-color {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            transition: background-color 0.8s ease-in-out;
+        }
+        
+        .animated-ring {
+            position: absolute;
+            border-radius: 50%;
+            border: 0 solid rgba(0, 0, 0, 0.05);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        
+        /* Main Content Layer */
+        main {
+            position: relative;
+            z-index: 10;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding-top: 4rem;
+            perspective: 2000px;
+        }
+        
+        /* Carousel */
+        #carousel {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: grab;
+        }
+        
+        #carousel:active {
+            cursor: grabbing;
+        }
+        
+        #carousel-track {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        
+        /* Carousel Card */
+        .carousel-card {
+            position: absolute;
+            width: 450px;
+            height: 450px;
+            perspective: 1200px;
+        }
+        
+        .card-inner {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: all 0.5s ease;
+        }
+        
+        .card-content {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            cursor: pointer;
+        }
+        
+        .card-content.active {
+            cursor: default;
+        }
+        
+        .vinyl-record {
+            position: absolute;
+            top: 5%;
+            bottom: 5%;
+            right: 5%;
+            width: 90%;
+            border-radius: 50%;
+            background-color: black;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: -50;
+            transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        
+        .spinning-vinyl {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            animation: spin 4s linear infinite;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        .vinyl-groove {
+            position: absolute;
+            border-radius: 50%;
+            border-style: dashed;
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .vinyl-label {
+            width: 35%;
+            height: 35%;
+            border-radius: 50%;
+            border: 4px solid black;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .vinyl-label::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            transform: scale(0.5);
+        }
+        
+        .album-cover {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            background-color: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+            transition: all 0.5s ease;
+            filter: grayscale(0.7) brightness(0.75);
+        }
+        
+        .album-cover.active {
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5);
+            filter: grayscale(0) brightness(1);
+        }
+        
+        .album-cover img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            pointer-events: none;
+            user-select: none;
+        }
+        
+        .album-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(to top right, rgba(0, 0, 0, 0.2), transparent, rgba(255, 255, 255, 0.3));
+            pointer-events: none;
+        }
+        
+        .best-seller-sticker {
+            position: absolute;
+            top: 1.5rem;
+            right: 1.5rem;
+            width: 5rem;
+            height: 5rem;
+            background-color: #FFD700;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transform: rotate(12deg);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            border: 2px solid white;
+            z-index: 10;
+        }
+        
+        .best-seller-sticker span {
+            font-size: 10px;
+            font-weight: 900;
+            text-align: center;
+            line-height: 1.25;
+            text-transform: uppercase;
+            letter-spacing: -0.05em;
+            color: black;
+        }
+        
+        .parental-advisory {
+            position: absolute;
+            bottom: 1.5rem;
+            left: 1.5rem;
+            border: 2px solid white;
+            background-color: black;
+            padding: 0.25rem 0.5rem;
+            z-index: 10;
+        }
+        
+        .parental-advisory span {
+            font-size: 8px;
+            color: white;
+            font-weight: 700;
+            text-transform: uppercase;
+            display: block;
+            line-height: 1;
+            letter-spacing: 0.1em;
+        }
+        
+        .card-shadow {
+            position: absolute;
+            bottom: -4rem;
+            left: 2.5rem;
+            right: 2.5rem;
+            height: 2rem;
+            background-color: rgba(0, 0, 0, 0.4);
+            filter: blur(24px);
+            border-radius: 50%;
+            opacity: 0;
+            transform: scaleX(0.5);
+            transition: all 0.5s ease;
+        }
+        
+        .card-shadow.active {
+            opacity: 0.6;
+            transform: scaleX(1);
+        }
+        
+        /* Header */
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 50;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 2rem;
+            user-select: none;
+            pointer-events: none;
+        }
+        
+        .header-section {
+            pointer-events: auto;
+        }
+        
+        .chapters-btn {
+            background-color: rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            color: black;
+            padding: 0.5rem 1.5rem;
+            border-radius: 9999px;
+            font-weight: 700;
+            font-size: 0.875rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        }
+        
+        .chapters-btn:hover {
+            background-color: rgba(0, 0, 0, 0.2);
+        }
+        
+        .logo {
+            font-size: 2.25rem;
+            font-weight: 900;
+            letter-spacing: -0.05em;
+            color: black;
+            line-height: 1;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .about-btn {
+            color: black;
+            font-weight: 700;
+            transition: opacity 0.3s ease;
+        }
+        
+        .about-btn:hover {
+            opacity: 0.6;
+        }
+        
+        /* Player */
+        #player {
+            position: fixed;
+            bottom: 2.5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 50;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+        }
+        
+        .player-container {
+            background-color: black;
+            color: white;
+            padding: 0.5rem 1.5rem 0.5rem 0.5rem;
+            border-radius: 9999px;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            pointer-events: auto;
+            min-width: 320px;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        
+        .play-btn {
+            width: 3rem;
+            height: 3rem;
+            border-radius: 50%;
+            background-color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: black;
+            flex-shrink: 0;
+            transition: all 0.3s ease;
+        }
+        
+        .track-info {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .track-number {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: rgba(255, 255, 255, 0.6);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .track-title {
+            font-size: 0.875rem;
+            font-weight: 700;
+            color: white;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .progress-bar-container {
+            width: 100%;
+            height: 0.25rem;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 9999px;
+            margin-top: 0.5rem;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background-color: white;
+            transition: width 0.1s linear;
+            width: 0%;
+        }
+        
+        .next-btn {
+            color: rgba(255, 255, 255, 0.5);
+            transition: color 0.3s ease;
+        }
+        
+        .next-btn:hover {
+            color: white;
+        }
+        
+        /* Footer */
+        footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 40;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            padding: 2rem;
+            pointer-events: none;
+        }
+        
+        .footer-spacer {
+            flex: 1;
+        }
+        
+        .support-btn {
+            background-color: white;
+            color: black;
+            padding: 0.5rem 1.5rem;
+            border-radius: 9999px;
+            font-weight: 700;
+            font-size: 0.875rem;
+            transition: transform 0.3s ease;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        
+        .support-btn:hover {
+            transform: scale(1.05);
+        }
+        
+        .legal-link {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: rgba(0, 0, 0, 0.5);
+            transition: color 0.3s ease;
+            margin-top: 0.5rem;
+        }
+        
+        .legal-link:hover {
+            color: black;
+        }
+        
+        /* Grid Overlay */
+        .grid-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            opacity: 0.04;
+            z-index: 50;
+            background-image: url('https://grainy-gradients.vercel.app/noise.svg');
+            mix-blend-mode: overlay;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <!-- Background Layer -->
+        <div id="background">
+            <div class="background-color"></div>
+            <!-- Animated rings will be added by JavaScript -->
+        </div>
+        
+        <!-- Main Content Layer (Carousel) -->
+        <main>
+            <div id="carousel">
+                <div id="carousel-track"></div>
+            </div>
+        </main>
+        
+        <!-- UI Overlay Layer -->
+        <header>
+            <!-- Left: Chapters Button -->
+            <div class="header-section">
+                <button class="chapters-btn">chapters</button>
+            </div>
+            
+            <!-- Center: Logo -->
+            <div class="header-section">
+                <h1 class="logo">
+                    <span>ponpon</span>
+                    <span>mania</span>
+                </h1>
+            </div>
+            
+            <!-- Right: About Link -->
+            <div class="header-section">
+                <button class="about-btn">about</button>
+            </div>
+        </header>
+        
+        <div id="player">
+            <div class="player-container">
+                <!-- Play Button -->
+                <button id="play-btn" class="play-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="black" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ml-1">
+                        <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                    </svg>
+                </button>
+                
+                <!-- Track Info -->
+                <div class="track-info">
+                    <span class="track-number">01.Welcome to Marny</span>
+                    <span class="track-title">PonponMania Vol. 1</span>
+                    
+                    <!-- Fake Progress Bar -->
+                    <div class="progress-bar-container">
+                        <div id="progress-bar" class="progress-bar"></div>
+                    </div>
+                </div>
+                
+                <!-- Next Button -->
+                <button id="next-btn" class="next-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="5 4 15 12 5 20 5 4"></polygon>
+                        <line x1="19" y1="5" x2="19" y2="19"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        
+        <footer>
+            <div class="footer-spacer"></div>
+            
+            <div class="footer-section header-section">
+                <button class="support-btn">support</button>
+                <a href="#" class="legal-link">legal notice & terms</a>
+            </div>
+        </footer>
+        
+        <!-- Grid overlay for texture -->
+        <div class="grid-overlay"></div>
+    </div>
+    
+    <script>
+        // Constants and Data
+        const ALBUMS = [
+            {
+                id: 1,
+                title: "PonponMania Vol. 1",
+                artist: "Marny",
+                coverUrl: "https://picsum.photos/id/1080/800/800",
+                color: "#52c41a", // Green
+                accentColor: "#f6ffed",
+                tracks: [{ title: "Welcome to Marny", duration: "3:12" }]
+            },
+            {
+                id: 2,
+                title: "Under Pressure",
+                artist: "Bubblegum",
+                coverUrl: "https://picsum.photos/id/1082/800/800",
+                color: "#faad14", // Orange/Yellow
+                accentColor: "#fff7e6",
+                tracks: [{ title: "Popping Bubbles", duration: "2:45" }]
+            },
+            {
+                id: 3,
+                title: "Sheep Don't Sleep",
+                artist: "The Flock",
+                coverUrl: "https://picsum.photos/id/1069/800/800",
+                color: "#ff85c0", // Pink
+                accentColor: "#fff0f6",
+                tracks: [{ title: "Counting Fences", duration: "4:01" }]
+            },
+            {
+                id: 4,
+                title: "Scratch That!",
+                artist: "DJ Hamster",
+                coverUrl: "https://picsum.photos/id/1074/800/800",
+                color: "#ff4d4f", // Red
+                accentColor: "#fff1f0",
+                tracks: [{ title: "Wheel Spin", duration: "3:30" }]
+            },
+            {
+                id: 5,
+                title: "WOW",
+                artist: "Surprise",
+                coverUrl: "https://picsum.photos/id/1025/800/800",
+                color: "#13c2c2", // Cyan
+                accentColor: "#e6fffb",
+                tracks: [{ title: "Jaw Dropper", duration: "2:55" }]
+            }
+        ];
+        
+        // Constants for layout
+        const CARD_WIDTH = 450;
+        const CARD_HEIGHT = 450;
+        const GAP = 700;
+        
+        // Main App
+        class PonponManiaApp {
+            constructor() {
+                this.activeIndex = 0;
+                this.isPlaying = false;
+                this.isDragging = false;
+                this.startX = 0;
+                this.currentX = 0;
+                this.initialTranslateX = 0;
+                this.isThrottled = false;
+                
+                // DOM Elements
+                this.background = document.getElementById('background');
+                this.backgroundColor = document.querySelector('.background-color');
+                this.carousel = document.getElementById('carousel');
+                this.carouselTrack = document.getElementById('carousel-track');
+                this.player = document.getElementById('player');
+                this.playBtn = document.getElementById('play-btn');
+                this.nextBtn = document.getElementById('next-btn');
+                this.progressBar = document.getElementById('progress-bar');
+                
+                this.cards = [];
+                
+                this.init();
+            }
+            
+            init() {
+                this.createAnimatedRings();
+                this.createCarouselCards();
+                this.updateLayout();
+                this.updateActiveAlbum();
+                this.bindEvents();
+            }
+            
+            createAnimatedRings() {
+                // Create 5 animated rings
+                for (let i = 0; i < 5; i++) {
+                    const ring = document.createElement('div');
+                    ring.className = 'animated-ring';
+                    this.background.appendChild(ring);
+                    this.animateRing(ring, i);
+                }
+            }
+            
+            animateRing(ring, delay) {
+                const animate = () => {
+                    // Reset ring
+                    ring.style.transition = 'none';
+                    ring.style.width = '0vw';
+                    ring.style.height = '0vw';
+                    ring.style.opacity = '0';
+                    ring.style.borderWidth = '0px';
+                    
+                    setTimeout(() => {
+                        // Animate in
+                        ring.style.transition = `width 8s linear, height 8s linear, opacity 8s linear, border-width 8s linear`;
+                        ring.style.width = '150vw';
+                        ring.style.height = '150vw';
+                        ring.style.opacity = '1';
+                        ring.style.borderWidth = '40px';
+                        
+                        // Animate out
+                        setTimeout(() => {
+                            ring.style.transition = `opacity 4s linear, border-width 4s linear`;
+                            ring.style.opacity = '0';
+                            ring.style.borderWidth = '0px';
+                        }, 4000);
+                    }, 10);
+                };
+                
+                // Start with delay
+                setTimeout(() => {
+                    animate();
+                    // Repeat every 8 seconds
+                    setInterval(animate, 8000);
+                }, delay * 1600);
+            }
+            
+            createCarouselCards() {
+                ALBUMS.forEach((album, index) => {
+                    const card = this.createCard(album, index);
+                    this.cards.push(card);
+                    this.carouselTrack.appendChild(card);
+                });
+            }
+            
+            createCard(album, index) {
+                const isActive = index === 0;
+                
+                // Create card wrapper
+                const card = document.createElement('div');
+                card.className = 'carousel-card';
+                card.dataset.index = index;
+                card.style.width = `${CARD_WIDTH}px`;
+                card.style.height = `${CARD_HEIGHT}px`;
+                card.style.left = `${index * GAP - CARD_WIDTH / 2}px`;
+                card.style.perspective = '1200px';
+                
+                // Card inner
+                const cardInner = document.createElement('div');
+                cardInner.className = 'card-inner';
+                card.appendChild(cardInner);
+                
+                // Card content
+                const cardContent = document.createElement('div');
+                cardContent.className = `card-content ${isActive ? 'active' : ''}`;
+                cardInner.appendChild(cardContent);
+                
+                // Vinyl record
+                const vinyl = document.createElement('div');
+                vinyl.className = 'vinyl-record';
+                vinyl.style.transform = `translateX(${isActive ? 220 : 0}px)`;
+                cardContent.appendChild(vinyl);
+                
+                // Spinning vinyl
+                const spinningVinyl = document.createElement('div');
+                spinningVinyl.className = 'spinning-vinyl';
+                vinyl.appendChild(spinningVinyl);
+                
+                // Vinyl grooves
+                const groove1 = document.createElement('div');
+                groove1.className = 'vinyl-groove';
+                groove1.style.top = '0.5rem';
+                groove1.style.left = '0.5rem';
+                groove1.style.right = '0.5rem';
+                groove1.style.bottom = '0.5rem';
+                groove1.style.borderWidth = '3px';
+                groove1.style.opacity = '0.4';
+                spinningVinyl.appendChild(groove1);
+                
+                const groove2 = document.createElement('div');
+                groove2.className = 'vinyl-groove';
+                groove2.style.top = '2rem';
+                groove2.style.left = '2rem';
+                groove2.style.right = '2rem';
+                groove2.style.bottom = '2rem';
+                groove2.style.borderWidth = '1px';
+                groove2.style.opacity = '0.3';
+                spinningVinyl.appendChild(groove2);
+                
+                const groove3 = document.createElement('div');
+                groove3.className = 'vinyl-groove';
+                groove3.style.top = '4rem';
+                groove3.style.left = '4rem';
+                groove3.style.right = '4rem';
+                groove3.style.bottom = '4rem';
+                groove3.style.borderWidth = '1px';
+                groove3.style.opacity = '0.3';
+                spinningVinyl.appendChild(groove3);
+                
+                // Vinyl label
+                const vinylLabel = document.createElement('div');
+                vinylLabel.className = 'vinyl-label';
+                vinylLabel.style.backgroundColor = album.color;
+                spinningVinyl.appendChild(vinylLabel);
+                
+                // Album cover
+                const albumCover = document.createElement('div');
+                albumCover.className = `album-cover ${isActive ? 'active' : ''}`;
+                cardContent.appendChild(albumCover);
+                
+                // Album image
+                const albumImage = document.createElement('img');
+                albumImage.src = album.coverUrl;
+                albumImage.alt = album.title;
+                albumCover.appendChild(albumImage);
+                
+                // Album overlay
+                const albumOverlay = document.createElement('div');
+                albumOverlay.className = 'album-overlay';
+                albumCover.appendChild(albumOverlay);
+                
+                // Stickers for active card
+                if (isActive) {
+                    // Best seller sticker
+                    const bestSeller = document.createElement('div');
+                    bestSeller.className = 'best-seller-sticker';
+                    bestSeller.innerHTML = `
+                        <span>Best<br/>Seller<br/>2024</span>
+                    `;
+                    albumCover.appendChild(bestSeller);
+                    
+                    // Parental advisory
+                    const parental = document.createElement('div');
+                    parental.className = 'parental-advisory';
+                    parental.innerHTML = `
+                        <span>Parental</span>
+                        <span>Advisory</span>
+                    `;
+                    albumCover.appendChild(parental);
+                }
+                
+                // Card shadow
+                const cardShadow = document.createElement('div');
+                cardShadow.className = `card-shadow ${isActive ? 'active' : ''}`;
+                cardContent.appendChild(cardShadow);
+                
+                // Add click event
+                cardContent.addEventListener('click', () => {
+                    if (!this.isDragging && !isActive) {
+                        this.setActiveIndex(index);
+                    }
+                });
+                
+                // Add mouse move event for tilt effect
+                cardContent.addEventListener('mousemove', (e) => {
+                    if (!isActive) return;
+                    
+                    const rect = cardContent.getBoundingClientRect();
+                    const x = e.clientX - rect.left - rect.width / 2;
+                    const y = e.clientY - rect.top - rect.height / 2;
+                    
+                    const rotateX = (y / rect.height) * -15;
+                    const rotateY = (x / rect.width) * 15;
+                    
+                    cardContent.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+                });
+                
+                cardContent.addEventListener('mouseleave', () => {
+                    if (isActive) {
+                        cardContent.style.transform = 'rotateX(0deg) rotateY(0deg)';
+                    }
+                });
+                
+                return card;
+            }
+            
+            updateLayout() {
+                // Update track position
+                this.carouselTrack.style.transform = `translateX(${-this.activeIndex * GAP}px) translateY(${-CARD_HEIGHT / 2}px)`;
+                
+                // Update each card
+                this.cards.forEach((card, index) => {
+                    const isActive = index === this.activeIndex;
+                    const cardContent = card.querySelector('.card-content');
+                    const albumCover = card.querySelector('.album-cover');
+                    const vinyl = card.querySelector('.vinyl-record');
+                    const cardShadow = card.querySelector('.card-shadow');
+                    
+                    if (cardContent && albumCover && vinyl && cardShadow) {
+                        // Update active state
+                        if (isActive) {
+                            cardContent.classList.add('active');
+                            albumCover.classList.add('active');
+                            cardShadow.classList.add('active');
+                            vinyl.style.transform = 'translateX(220px)';
+                        } else {
+                            cardContent.classList.remove('active');
+                            albumCover.classList.remove('active');
+                            cardShadow.classList.remove('active');
+                            vinyl.style.transform = 'translateX(0px)';
+                        }
+                        
+                        // Update 3D effect based on position
+                        const distanceFromCenter = Math.abs(index - this.activeIndex);
+                        const scale = Math.max(0.4, 1 - distanceFromCenter * 0.35);
+                        const opacity = Math.max(0, 1 - distanceFromCenter * 0.1);
+                        const rotateY = (index - this.activeIndex) * 30;
+                        
+                        const cardInner = card.querySelector('.card-inner');
+                        if (cardInner) {
+                            cardInner.style.transform = `rotateY(${rotateY}deg) scale(${scale})`;
+                            cardInner.style.opacity = opacity;
+                        }
+                    }
+                });
+            }
+            
+            updateActiveAlbum() {
+                const currentAlbum = ALBUMS[this.activeIndex];
+                
+                // Update background color
+                if (this.backgroundColor) {
+                    this.backgroundColor.style.backgroundColor = currentAlbum.color;
+                }
+                
+                // Update player
+                this.updatePlayer(currentAlbum);
+            }
+            
+            updatePlayer(album) {
+                // Update track info
+                const trackNumber = this.player.querySelector('.track-number');
+                const trackTitle = this.player.querySelector('.track-title');
+                
+                if (trackNumber && trackTitle) {
+                    trackNumber.textContent = `01.${album.tracks[0].title}`;
+                    trackTitle.textContent = album.title;
+                }
+                
+                // Reset progress bar
+                if (this.progressBar) {
+                    this.progressBar.style.width = '0%';
+                }
+            }
+            
+            setActiveIndex(index) {
+                if (index >= 0 && index < ALBUMS.length) {
+                    this.activeIndex = index;
+                    this.updateLayout();
+                    this.updateActiveAlbum();
+                }
+            }
+            
+            nextAlbum() {
+                this.setActiveIndex(this.activeIndex + 1);
+            }
+            
+            prevAlbum() {
+                this.setActiveIndex(this.activeIndex - 1);
+            }
+            
+            togglePlay() {
+                this.isPlaying = !this.isPlaying;
+                
+                if (this.playBtn && this.progressBar) {
+                    if (this.isPlaying) {
+                        // Change to pause icon
+                        this.playBtn.innerHTML = `
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="black" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="6" y="4" width="4" height="16"></rect>
+                                <rect x="14" y="4" width="4" height="16"></rect>
+                            </svg>
+                        `;
+                        
+                        // Animate progress bar
+                        this.progressBar.style.transition = 'width 30s linear';
+                        this.progressBar.style.width = '100%';
+                    } else {
+                        // Change to play icon
+                        this.playBtn.innerHTML = `
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="black" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ml-1">
+                                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                            </svg>
+                        `;
+                        
+                        // Pause progress bar
+                        this.progressBar.style.transition = 'none';
+                    }
+                }
+            }
+            
+            bindEvents() {
+                // Wheel Navigation
+                this.carousel.addEventListener('wheel', (e) => {
+                    e.preventDefault();
+                    
+                    if (this.isThrottled) return;
+                    
+                    const threshold = 15;
+                    if (Math.abs(e.deltaY) > threshold) {
+                        if (e.deltaY > 0) {
+                            // Scroll Down -> Next
+                            this.nextAlbum();
+                        } else {
+                            // Scroll Up -> Prev
+                            this.prevAlbum();
+                        }
+                        
+                        this.isThrottled = true;
+                        setTimeout(() => {
+                            this.isThrottled = false;
+                        }, 1000);
+                    }
+                }, { passive: false });
+                
+                // Drag Navigation
+                this.carouselTrack.addEventListener('mousedown', (e) => {
+                    this.isDragging = true;
+                    this.startX = e.clientX;
+                    this.initialTranslateX = -this.activeIndex * GAP;
+                });
+                
+                document.addEventListener('mousemove', (e) => {
+                    if (!this.isDragging) return;
+                    
+                    const currentX = e.clientX;
+                    const diff = currentX - this.startX;
+                    this.currentX = this.initialTranslateX + diff;
+                    
+                    // Apply transform
+                    this.carouselTrack.style.transform = `translateX(${this.currentX}px) translateY(${-CARD_HEIGHT / 2}px)`;
+                });
+                
+                document.addEventListener('mouseup', () => {
+                    if (!this.isDragging) return;
+                    
+                    this.isDragging = false;
+                    
+                    // Calculate nearest index
+                    const nearestIndex = Math.round(-this.currentX / GAP);
+                    this.setActiveIndex(nearestIndex);
+                });
+                
+                // Touch events
+                this.carouselTrack.addEventListener('touchstart', (e) => {
+                    this.isDragging = true;
+                    this.startX = e.touches[0].clientX;
+                    this.initialTranslateX = -this.activeIndex * GAP;
+                });
+                
+                document.addEventListener('touchmove', (e) => {
+                    e.preventDefault();
+                    if (!this.isDragging) return;
+                    
+                    const currentX = e.touches[0].clientX;
+                    const diff = currentX - this.startX;
+                    this.currentX = this.initialTranslateX + diff;
+                    
+                    // Apply transform
+                    this.carouselTrack.style.transform = `translateX(${this.currentX}px) translateY(${-CARD_HEIGHT / 2}px)`;
+                }, { passive: false });
+                
+                document.addEventListener('touchend', () => {
+                    if (!this.isDragging) return;
+                    
+                    this.isDragging = false;
+                    
+                    // Calculate nearest index
+                    const nearestIndex = Math.round(-this.currentX / GAP);
+                    this.setActiveIndex(nearestIndex);
+                });
+                
+                // Player controls
+                if (this.playBtn) {
+                    this.playBtn.addEventListener('click', () => {
+                        this.togglePlay();
+                    });
+                }
+                
+                if (this.nextBtn) {
+                    this.nextBtn.addEventListener('click', () => {
+                        this.nextAlbum();
+                    });
+                }
+            }
+        }
+        
+        // Initialize the app when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            new PonponManiaApp();
+        });
+    </script>
+</body>
+</html>

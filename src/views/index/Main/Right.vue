@@ -1,5 +1,5 @@
 <template>
-  <div :class="store.mobileOpenState ? 'right' : 'right hidden'">
+  <div :class="store.mobileOpenState ? 'right' : 'right custom-hidden'">
     <!-- 移动端 Logo -->
     <div class="logo text-hidden" @click="store.mobileFuncState = !store.mobileFuncState">
       <span class="bg">{{ siteUrl[0] }}</span>
@@ -64,7 +64,7 @@ const siteUrl = computed(() => {
   @media (max-width: 720px) {
     margin-left: 0;
     width: 100%;
-    &.hidden {
+    &.custom-hidden {
       display: none;
     }
   }

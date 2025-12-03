@@ -94,26 +94,21 @@ onMounted(() => {
         {
           name: "爱错",
           artist: "王力宏",
-          url: "http://119.29.240.233/assets/audio/aicuo.mp3",
+          url: "/aicuo.mp3",
           cover: "",
           lrc: "/aicuo.js"
         }
       ];
-      console.log("本地音乐列表数据:", localMusic);
       // 更改播放器加载状态
       store.musicIsOk = true;
-      console.log("音乐加载完成，store.musicIsOk设置为true");
       // 生成歌单
       playList.value = localMusic;
-      console.log("歌单生成完成:", playList.value);
-      console.log("播放索引:", playIndex.value, "歌单长度:", playList.value.length, "音量:", props.volume);
+
       
       // 浏览器自动播放限制，不再尝试自动播放
       // 确保初始状态正确设置为false（暂停状态）
       store.setPlayerState(false);
-      console.log("播放器初始化完成，初始状态设置为暂停");
     } catch (err) {
-      console.error("初始化播放器失败:", err);
       store.musicIsOk = false;
       ElMessage({
         message: "播放器初始化失败",

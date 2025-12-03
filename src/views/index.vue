@@ -26,7 +26,11 @@
         <Icon size="20">
           <Switch />
         </Icon>
-        <span class="bg-switch-text">{{ store.coverType == '4' ? '粒子背景' : '默认壁纸' }}</span>
+        <span class="bg-switch-text">{{ 
+          store.coverType == '4' ? '粒子背景' : 
+          store.coverType == '5' ? '音乐粒子背景' : 
+          '默认壁纸' 
+        }}</span>
       </div>
       <!-- 左右切换背景按钮 -->
       <div
@@ -154,11 +158,20 @@ const loadComplete = () => {
 
 // 背景切换
 const toggleBackground = () => {
-  store.coverType = store.coverType == '4' ? '0' : '4';
-  ElMessage({
-    message: store.coverType == '4' ? '已切换到粒子背景' : '已切换到默认壁纸',
-    grouping: true,
-  });
+  // 循环切换：默认壁纸 -> 粒子背景
+  if (store.coverType == '0' || store.coverType == '5') {
+    store.coverType = '4';
+    ElMessage({
+      message: '已切换到粒子背景',
+      grouping: true,
+    });
+  } else {
+    store.coverType = '0';
+    ElMessage({
+      message: '已切换到默认壁纸',
+      grouping: true,
+    });
+  }
 };
 
 // 上一张背景图
