@@ -6,8 +6,6 @@ import IpadMini from '../views/IpadMini.vue'
 import Index from '../views/index.vue'
 import Flowers from '../views/flowers.vue'
 import Shoes from '../views/Shoes.vue'
-import Demo from '../views/Demo.vue'
-import DemoCardStack from '../views/DemoCardStack.vue'
 import lens from '../views/lens.vue'
 
 const router = createRouter({
@@ -51,16 +49,6 @@ const router = createRouter({
       path: '/shoes',
       name: 'shoes',
       component: Shoes
-    },
-    {
-      path: '/demo',
-      name: 'demo',
-      component: Demo
-    },
-    {
-      path: '/demo-card-stack',
-      name: 'demo-card-stack',
-      component: DemoCardStack
     },
     {
       path: '/lens',

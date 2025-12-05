@@ -94,8 +94,8 @@ onMounted(() => {
         {
           name: "爱错",
           artist: "王力宏",
-          // url: "/aicuo.mp3",
-          url: "http://119.29.240.233/assets/audio/aicuo.mp3",
+          url: "/aicuo.mp3",
+          // url: "http://119.29.240.233/assets/audio/aicuo.mp3",
           cover: "",
           lrc: "/aicuo.js"
         }
