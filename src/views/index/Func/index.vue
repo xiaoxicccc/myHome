@@ -9,7 +9,7 @@
         </div>
       </el-col>
       <el-col :span="12">
-        <div :class="['right', store.coverType == '4' ? 'particle-card' : 'cards']">
+        <div :class="['right', (store.coverType == '4' || store.coverType == '5') ? 'particle-card' : 'cards']">
           <div class="time">
             <div class="date">
               <span>{{ currentTime.year }}&nbsp;年&nbsp;</span>
@@ -115,29 +115,29 @@ onBeforeUnmount(() => {
       justify-content: space-between;
       animation: fade 0.5s;
       .time {
-        font-size: 1.1rem;
-        text-align: center;
-        .date {
-          text-overflow: ellipsis;
-          overflow-x: hidden;
-          white-space: nowrap;
-        }
-        .text {
-          margin-top: 10px;
-          font-size: 3.25rem;
-          letter-spacing: 2px;
-          font-family: "UnidreamLED";
-        }
-        @media (min-width: 1201px) and (max-width: 1280px) {
-          font-size: 1rem;
-        }
-        @media (min-width: 911px) and (max-width: 992px) {
-          font-size: 1rem;
+          font-size: 1.1rem;
+          text-align: center;
+          .date {
+            text-overflow: ellipsis;
+            overflow-x: hidden;
+            white-space: nowrap;
+          }
           .text {
-            font-size: 2.75rem;
+            margin-top: 10px;
+            font-size: 2.5rem;
+            letter-spacing: 2px;
+            // font-family: "UnidreamLED";
+          }
+          @media (min-width: 1201px) and (max-width: 1280px) {
+            font-size: 1rem;
+          }
+          @media (min-width: 911px) and (max-width: 992px) {
+            font-size: 1rem;
+            .text {
+              font-size: 2rem;
+            }
           }
         }
-      }
       .weather {
         text-align: center;
         width: 100%;

@@ -11,10 +11,5 @@ defineOptions({
 </script>
 
 <style lang="scss">
-#app {
-  font-family: 'AlimamaDaoLiTi', Arial, sans-serif;
-  // height: 100vh;
-  // overflow: hidden;
-}
 
 </style>

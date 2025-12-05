@@ -1,12 +1,12 @@
 [
   {
-    "name": "花朵展示",
+    "name": "花语秘境",
     "link": "/flowers",
     "icon": "Leaf",
     "isInternal": true
   },
   {
-    "name": "iPad Mini",
+    "name": "掌上视界",
     "link": "/ipad-mini",
     "icon": "Laptop",
     "isInternal": true
@@ -18,31 +18,31 @@
     "isInternal": true
   },
   {
-    "name": "鞋子展示",
+    "name": "步履之间",
     "link": "/shoes",
     "icon": "Book",
     "isInternal": true
   },
   {
-    "name": "功能5",
+    "name": "云端漫步",
     "link": "#",
     "icon": "Cloud",
     "isInternal": false
   },
   {
-    "name": "功能6",
+    "name": "探索之旅",
     "link": "#",
     "icon": "Compass",
     "isInternal": false
   },
   {
-    "name": "功能7",
+    "name": "律动旋律",
     "link": "#",
     "icon": "CompactDisc",
     "isInternal": false
   },
   {
-    "name": "功能8",
+    "name": "代码世界",
     "link": "#",
     "icon": "LaptopCode",
     "isInternal": false

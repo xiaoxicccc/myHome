@@ -1,7 +1,7 @@
 <template>
   <!-- 音乐控制面板 -->
   <div
-    :class="['music', store.coverType == '4' ? 'particle-music' : '']"
+    :class="['music', (store.coverType == '4' || store.coverType == '5') ? 'particle-music' : '']"
     @mouseenter="volumeShow = true"
     @mouseleave="volumeShow = false"
     v-show="store.musicOpenState"
@@ -97,30 +97,55 @@ const playerData = reactive({
   id: import.meta.env.VITE_SONG_ID,
 });
 
-// 保存之前的背景类型
-const prevCoverType = ref(store.coverType);
+// 组件挂载时初始化
+onMounted(() => {
+  console.log('Music组件挂载，初始背景类型:', store.coverType, '初始播放器状态:', store.musicOpenState);
+  
+  // 如果播放器是打开状态，切换到音乐粒子背景
+  if (store.musicOpenState) {
+    // 保存当前背景类型到store
+    if (store.coverType !== '5') {
+      store.prevCoverType = store.coverType;
+    }
+    store.coverType = '5';
+    console.log('播放器初始为打开状态，切换到音乐粒子背景，之前的背景类型:', store.prevCoverType);
+  }
+});
 
-// 监听音乐播放状态，自动切换背景
+// 监听播放器状态和播放状态，自动切换背景
 watch(
-  () => store.playerState,
-  (isPlaying) => {
-    console.log('音乐播放状态变更:', isPlaying);
-    if (isPlaying) {
-      // 播放时，保存当前背景类型并切换到音乐粒子背景
+  [() => store.musicOpenState, () => store.playerState],
+  ([isOpen, isPlaying]) => {
+    console.log('播放器状态变更:', { isOpen, isPlaying }, '当前背景类型:', store.coverType);
+    if (isOpen || isPlaying) {
+      // 播放器打开或音乐播放时，显示音乐粒子背景
       if (store.coverType !== '5') {
-        prevCoverType.value = store.coverType;
+        store.prevCoverType = store.coverType;
         store.coverType = '5';
-        console.log('切换到音乐粒子背景，之前的背景类型:', prevCoverType.value);
+        console.log('打开播放器或音乐播放，切换到音乐粒子背景，之前的背景类型:', store.prevCoverType);
       }
     } else {
-      // 暂停时，恢复之前的背景类型
+      // 播放器关闭且音乐暂停时，恢复之前的背景类型
       if (store.coverType === '5') {
-        store.coverType = prevCoverType.value;
-        console.log('恢复背景类型:', prevCoverType.value);
+        store.coverType = store.prevCoverType;
+        console.log('关闭播放器且音乐暂停，恢复背景类型:', store.prevCoverType);
       }
     }
   },
   { immediate: true } // 立即执行监听
+);
+
+// 监听背景类型变化，确保prevCoverType始终正确
+watch(
+  () => store.coverType,
+  (newType) => {
+    console.log('背景类型变化:', newType);
+    // 如果背景类型不是音乐粒子背景，更新prevCoverType
+    if (newType !== '5') {
+      store.prevCoverType = newType;
+      console.log('更新store.prevCoverType:', newType);
+    }
+  }
 );
 
 // 开启播放列表
@@ -138,8 +163,9 @@ const closeMusicList = () => {
 // 音乐播放暂停
 const changePlayState = () => {
   playerRef.value.playToggle();
-  // 不需要手动切换状态，APlayer的onPlay和onPause事件会自动更新状态
-  // store.setPlayerState(!store.playerState);
+  // 手动切换状态，确保状态立即更新，不依赖事件触发
+  store.setPlayerState(!store.playerState);
+  console.log('手动切换播放状态:', !store.playerState);
 };
 
 // 音乐上下曲

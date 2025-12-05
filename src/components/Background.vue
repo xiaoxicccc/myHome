@@ -1,8 +1,8 @@
 <template>
-  <div :class="[store.backgroundShow ? 'cover show' : 'cover', { 'particle-background': store.coverType == '4' }]">
+  <div :class="[store.backgroundShow ? 'cover show' : 'cover', { 'particle-background': store.coverType == '4' || store.coverType == '5' }]">
     <!-- 传统图片背景 -->
     <img
-      v-show="store.imgLoadStatus && store.coverType != '4'"
+      v-show="store.imgLoadStatus && store.coverType != '4' && store.coverType != '5'"
       :src="bgUrl"
       class="bg"
       alt="cover"
@@ -10,10 +10,8 @@
       @error.once="imgLoadError"
       @animationend="imgAnimationEnd"
     />
-    <!-- Three.js交互式背景 -->
-    <ThreeBackground v-if="store.coverType == '4'" />
     <!-- 音乐粒子背景 -->
-    <MusicParticleBackground v-if="store.coverType == '5'" />
+    <MusicParticleBackground v-show="store.coverType == '5'" />
     <div :class="store.backgroundShow ? 'gray custom-hidden' : 'gray'" />
     <Transition name="fade" mode="out-in">
       <a
@@ -33,7 +31,6 @@ import { ref, watch, onMounted, onBeforeUnmount, h } from 'vue';
 import { ElMessage } from 'element-plus';
 import { mainStore } from "@/stores";
 import { Error } from "@icon-park/vue-next";
-import ThreeBackground from "./ThreeBackground.vue";
 import MusicParticleBackground from "./MusicParticleBackground.vue";
 
 const store = mainStore();

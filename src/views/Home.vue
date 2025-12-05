@@ -1,7 +1,7 @@
 <template>
   <div class="home" ref="homeRef">
     <!-- WebGL Fluid Canvas -->
-    <canvas id="webgl-fluid-canvas" ref="canvasRef"></canvas>
+    <WebGLFluid ref="fluidRef" />
     <!-- 页面内容 -->
     <div class="content" ref="contentRef">
       <h1 class="title" ref="titleRef">
@@ -27,10 +27,11 @@
 import { ref, onMounted, onUnmounted, computed } from 'vue';
 import gsap from 'gsap';
 import { useRouter } from 'vue-router';
+import WebGLFluid from '@/components/WebGLFluid.vue';
 
 // Refs
 const homeRef = ref(null);
-const canvasRef = ref(null);
+const fluidRef = ref(null);
 const contentRef = ref(null);
 const titleRef = ref(null);
 const subtitleRef = ref(null);
@@ -44,8 +45,6 @@ const titleChars = computed(() => title.split(''));
 const subtitleChars = computed(() => subtitle.split(''));
 
 // State
-let scriptLoaded = false;
-let animationFrameId = null;
 const router = useRouter();
 
 // 逐字飞入动画
@@ -101,7 +100,7 @@ const animateText = () => {
 // 进入副屏动画
 const enterSecondaryScreen = () => {
   // 1. 主屏背景色/图片超平滑 hue 旋转 + blur 过渡
-  gsap.to(canvasRef.value, {
+  gsap.to('.webgl-fluid-canvas', {
     filter: 'hue-rotate(180deg) blur(10px)',
     duration: 1.5,
     ease: 'power3.inOut'
@@ -145,68 +144,7 @@ const handleWheel = (event) => {
   }
 };
 
-// 动态加载脚本
-const loadScript = (src) => {
-  return new Promise((resolve, reject) => {
-    const script = document.createElement('script');
-    script.src = src;
-    script.onload = resolve;
-    script.onerror = reject;
-    document.body.appendChild(script);
-  });
-};
-
-// 初始化WebGLFluid
-const initWebGLFluid = async () => {
-  try {
-    // 确保canvas元素存在
-    if (!canvasRef.value) return;
-    
-    // 移除旧的dat.GUI实例
-    const oldGui = document.querySelector('.dg.main.a');
-    if (oldGui) {
-      oldGui.remove();
-    }
-    
-    // 移除旧的canvas事件监听器
-    const oldCanvas = document.getElementById('webgl-fluid-canvas');
-    if (oldCanvas) {
-      // 移除所有事件监听器
-      oldCanvas.replaceWith(oldCanvas.cloneNode(true));
-    }
-    
-    // 检查脚本是否已经加载
-    let datGuiLoaded = document.querySelector('script[src*="dat.gui.min.js"]');
-    let scriptLoaded = document.querySelector('script[src*="script.js"]');
-    
-    // 移除已存在的脚本，确保重新加载
-    if (datGuiLoaded) {
-      datGuiLoaded.remove();
-      datGuiLoaded = null;
-    }
-    if (scriptLoaded) {
-      scriptLoaded.remove();
-      scriptLoaded = null;
-    }
-    
-    // 清空canvas
-    const ctx = canvasRef.value.getContext('2d');
-    if (ctx) {
-      ctx.clearRect(0, 0, canvasRef.value.width, canvasRef.value.height);
-    }
-    
-    // 重新加载脚本
-    await loadScript('/dat.gui.min.js');
-    await loadScript('/script.js');
-  } catch (error) {
-    console.error('Failed to initialize WebGL Fluid Simulation:', error);
-  }
-};
-
 onMounted(() => {
-  // 初始化WebGL流体
-  initWebGLFluid();
-  
   // 添加鼠标滚轮事件监听
   window.addEventListener('wheel', handleWheel, { passive: false });
   
@@ -225,38 +163,6 @@ onUnmounted(() => {
   
   // 移除右键菜单阻止
   document.oncontextmenu = null;
-  
-  // 停止动画循环
-  if (window.cancelAnimationFrame && animationFrameId) {
-    window.cancelAnimationFrame(animationFrameId);
-    animationFrameId = null;
-  }
-  
-  // 清理dat.GUI控制面板
-  const datGuiElement = document.querySelector('.dg.main.a');
-  if (datGuiElement) {
-    datGuiElement.remove();
-  }
-  
-  // 移除加载的脚本
-  const datGuiScript = document.querySelector('script[src*="dat.gui.min.js"]');
-  if (datGuiScript) {
-    datGuiScript.remove();
-  }
-  
-  const scriptJsScript = document.querySelector('script[src*="script.js"]');
-  if (scriptJsScript) {
-    scriptJsScript.remove();
-  }
-  
-  // 清理全局变量
-  if (window.webglFluid) {
-    window.webglFluid = null;
-  }
-  
-  if (window.GUI) {
-    window.GUI = null;
-  }
 });
 </script>
 
@@ -310,14 +216,14 @@ onUnmounted(() => {
 }
 
 .title {
-  font-size: 4rem;
+  font-size: 5rem;
   margin-bottom: 1rem;
   text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
   line-height: 1.2;
 }
 
 .subtitle {
-  font-size: 1.8rem;
+  font-size: 2.5rem;
   margin-bottom: 3rem;
   opacity: 0.8;
   line-height: 1.4;
@@ -334,11 +240,11 @@ onUnmounted(() => {
 
 @media (max-width: 768px) {
   .title {
-    font-size: 2rem;
+    font-size: 2.5rem;
   }
   
   .subtitle {
-    font-size: 1.2rem;
+    font-size: 1.5rem;
   }
   
   .features {

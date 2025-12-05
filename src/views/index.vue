@@ -7,6 +7,10 @@
   <!-- 主界面 -->
   <Transition name="fade" mode="out-in">
     <main id="main" v-if="store.imgLoadStatus">
+      <!-- 退出按钮 -->
+      <div class="logout-btn" @click="handleLogout">
+        <img src="@/assets/icon/other/logout.svg" alt="退出" class="logout-icon" />
+      </div>
       <div class="container" v-show="!store.backgroundShow">
         <section class="all" v-show="!store.setOpenState">
           <MainLeft />
@@ -17,21 +21,7 @@
           <MoreSet />
         </section>
       </div>
-      <!-- 背景切换按钮 -->
-      <div
-        class="bg-switch"
-        v-show="!store.backgroundShow"
-        @click="toggleBackground"
-      >
-        <Icon size="20">
-          <Switch />
-        </Icon>
-        <span class="bg-switch-text">{{ 
-          store.coverType == '4' ? '粒子背景' : 
-          store.coverType == '5' ? '音乐粒子背景' : 
-          '默认壁纸' 
-        }}</span>
-      </div>
+      <!-- 移除背景切换按钮，改为根据播放器状态自动切换背景 -->
       <!-- 左右切换背景按钮 -->
       <div
         class="bg-nav left"
@@ -61,9 +51,13 @@
         <component :is="store.mobileOpenState ? CloseSmall : HamburgerButton" />
       </Icon>
       <!-- 页脚 -->
-      <Transition name="fade" mode="out-in">
-        <Footer class="f-ter" v-show="!store.backgroundShow && !store.setOpenState" />
-      </Transition>
+    <Transition name="fade" mode="out-in">
+      <Footer class="f-ter" v-show="!store.backgroundShow && !store.setOpenState" />
+    </Transition>
+    <!-- 向上滚动引导动画 -->
+    <div class="scroll-up" @click="scrollUp">
+      <img src="@/assets/icon/other/down.png" alt="up" class="up-icon" />
+    </div>
     </main>
   </Transition>
   </div>
@@ -89,6 +83,10 @@ import config from "@/../package.json";
 
 const store = mainStore();
 const router = useRouter();
+
+// 向上滚动距离累积器
+const scrollUpDistance = ref(0);
+const scrollTimer = ref(null);
 
 // 左右切换按钮显示状态
 const showLeftBtn = ref(false);
@@ -146,33 +144,40 @@ const handleMouseMove = (event) => {
   }
 };
 
+// 标志位：是否已经显示过欢迎提示
+const hasShownWelcome = ref(false);
+
 // 加载完成事件
 const loadComplete = () => {
   nextTick(() => {
-    // 欢迎提示
-    helloInit();
-    // 默哀模式
+    // 只在首次加载时显示欢迎提示
+    if (!hasShownWelcome.value) {
+      helloInit();
+      hasShownWelcome.value = true;
+      console.log('显示欢迎提示');
+    }
+    // 默哀模式每次都检查
     checkDays();
   });
 };
 
-// 背景切换
-const toggleBackground = () => {
-  // 循环切换：默认壁纸 -> 粒子背景
-  if (store.coverType == '0' || store.coverType == '5') {
-    store.coverType = '4';
-    ElMessage({
-      message: '已切换到粒子背景',
-      grouping: true,
-    });
-  } else {
-    store.coverType = '0';
-    ElMessage({
-      message: '已切换到默认壁纸',
-      grouping: true,
-    });
-  }
-};
+// 移除背景切换功能，改为根据播放器状态自动切换背景
+// const toggleBackground = () => {
+//   // 循环切换：默认壁纸 -> 粒子背景
+//   if (store.coverType == '0' || store.coverType == '5') {
+//     store.coverType = '4';
+//     ElMessage({
+//       message: '已切换到粒子背景',
+//       grouping: true,
+//     });
+//   } else {
+//     store.coverType = '0';
+//     ElMessage({
+//       message: '已切换到默认壁纸',
+//       grouping: true,
+//     });
+//   }
+// };
 
 // 上一张背景图
 const prevBg = () => {
@@ -192,6 +197,30 @@ const nextBg = () => {
   });
 };
 
+// 退出登录功能
+const handleLogout = () => {
+  // 清空localStorage和sessionStorage
+  localStorage.clear();
+  sessionStorage.clear();
+  
+  // 重置store状态
+  store.$reset();
+  
+  // 跳转到登录页
+  router.push('/login');
+  
+  // 显示退出成功提示
+  ElMessage({
+    message: '已退出登录',
+    grouping: true,
+  });
+};
+
+// 向上滚动回到home页
+const scrollUp = () => {
+  router.push('/');
+};
+
 // 监听宽度变化
 watch(
   () => store.innerWidth,
@@ -202,6 +231,28 @@ watch(
     }
   },
 );
+
+// 鼠标滚轮事件处理函数
+const handleWheel = (event) => {
+  if (event.deltaY < 0) {
+    // 向上滚动，累积滚动距离
+    scrollUpDistance.value += Math.abs(event.deltaY);
+    
+    // 清除之前的定时器
+    if (scrollTimer.value) {
+      clearTimeout(scrollTimer.value);
+    }
+    
+    // 设置新的定时器，300ms内没有新的滚动事件则检查累积距离
+    scrollTimer.value = setTimeout(() => {
+      if (scrollUpDistance.value > 200) { // 滚动两格以上（每格约100ms，两格约200ms）
+        scrollUp();
+      }
+      // 重置累积距离
+      scrollUpDistance.value = 0;
+    }, 300);
+  }
+};
 
 onMounted(() => {
   // 屏蔽右键
@@ -219,6 +270,9 @@ onMounted(() => {
   
   // 添加鼠标移动事件监听，控制左右切换按钮的显示
   window.addEventListener("mousemove", handleMouseMove);
+  
+  // 添加鼠标滚轮事件监听，实现向上滚动回到home页
+  window.addEventListener("wheel", handleWheel, { passive: false });
 
   // 监听当前页面宽度
   getWidth();
@@ -232,6 +286,12 @@ onBeforeUnmount(() => {
   window.removeEventListener("mousedown", handleMouseDown);
   // 移除鼠标移动事件监听
   window.removeEventListener("mousemove", handleMouseMove);
+  // 移除鼠标滚轮事件监听
+  window.removeEventListener("wheel", handleWheel);
+  // 清除定时器，避免内存泄漏
+  if (scrollTimer.value) {
+    clearTimeout(scrollTimer.value);
+  }
 });
 </script>
 
@@ -376,6 +436,40 @@ onBeforeUnmount(() => {
       }
       @media (min-width: 721px) {
         display: none;
+      }
+    }
+    
+    .logout-btn {
+      position: absolute;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      top: 20px;
+      right: 20px;
+      width: 36px;
+      height: 36px;
+      background: rgb(0 0 0 / 20%);
+      backdrop-filter: blur(10px);
+      border-radius: 50%;
+      transition: all 0.3s;
+      animation: fade 0.5s;
+      cursor: pointer;
+      &:hover {
+        transform: scale(1.1);
+        background: rgb(0 0 0 / 30%);
+      }
+      &:active {
+        transform: scale(0.9);
+      }
+      .logout-icon {
+        width: 20px;
+        height: 20px;
+        object-fit: contain;
+        filter: brightness(1.3);
+        transition: filter 0.3s;
+      }
+      &:hover .logout-icon {
+        filter: brightness(1.4);
       }
     }
   @media (max-height: 720px) {

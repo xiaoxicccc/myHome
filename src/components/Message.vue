@@ -10,7 +10,7 @@
       </div>
     </div>
     <!-- 简介 -->
-    <div :class="['description', store.coverType == '4' ? 'particle-card' : 'cards']" @click="changeBox">
+    <div :class="['description', (store.coverType == '4' || store.coverType == '5') ? 'particle-card' : 'cards']" @click="changeBox">
       <div class="content">
         <Icon size="16">
           <QuoteLeft />

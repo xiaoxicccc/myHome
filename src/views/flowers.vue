@@ -7,19 +7,6 @@
     <div class="wrapper">
       <!-- 动态生成所有花卉页面 -->
       <div class="pages" v-for="(flower, index) in flowers" :key="index">
-        <!-- 四个角落宠物图片 -->
-        <div class="pet-image top-left">
-          <img :src="cornerPetImages[index].topLeft" alt="宠物" />
-        </div>
-        <div class="pet-image top-right">
-          <img :src="cornerPetImages[index].topRight" alt="宠物" />
-        </div>
-        <div class="pet-image bottom-left">
-          <img :src="cornerPetImages[index].bottomLeft" alt="宠物" />
-        </div>
-        <div class="pet-image bottom-right">
-          <img :src="cornerPetImages[index].bottomRight" alt="宠物" />
-        </div>
         <div class="product" :class="`item-${index + 1}`">
           <!-- 背景装饰元素 -->
           <div class="bg-decoration">
@@ -59,120 +46,65 @@ gsap.registerPlugin(ScrollTrigger)
 // 初始化store
 const store = mainStore()
 
-// 使用 Vite 的 import.meta.glob 预加载所有花卉图片
-const flowerImageModules = import.meta.glob('@/assets/icon/flowers/*.png', { eager: true })
+// 按需引入所需的花卉图片
+import sunflower from '@/assets/icon/flowers/向日葵.png'
+import camellia from '@/assets/icon/flowers/山茶花.png'
+import magnolia from '@/assets/icon/flowers/木兰花.png'
+import narcissus from '@/assets/icon/flowers/水仙.png'
+import lily from '@/assets/icon/flowers/百合花.png'
+import jasmine from '@/assets/icon/flowers/茉莉.png'
+import chrysanthemum from '@/assets/icon/flowers/菊花.png'
 
-// 提取花卉图片路径数组
-const flowerImagePaths = ref(Object.values(flowerImageModules).map(module => module.default))
-
-// 定义花卉数据结构
+// 定义花卉数据结构，只保留指定的7种花卉
 const flowerData = [
   {
     name: '向日葵',
     description: '向日葵是一种充满活力的花卉，总是面向太阳生长，象征着积极向上的生活态度。',
-    language: '花语：沉默的爱、忠诚、爱慕'
+    language: '花语：沉默的爱、忠诚、爱慕',
+    image: sunflower
   },
   {
     name: '山茶花',
     description: '山茶花是一种优雅的花卉，花瓣层层叠叠，如同高贵的公主，在微风中轻轻摇曳。',
-    language: '花语：理想的爱、谦让、美德'
+    language: '花语：理想的爱、谦让、美德',
+    image: camellia
   },
   {
     name: '木兰花',
     description: '木兰花是一种高雅的花卉，花瓣洁白如玉，香气清幽，象征着纯洁和高尚。',
-    language: '花语：高尚、纯洁、优雅'
-  },
-  {
-    name: '格桑花',
-    description: '格桑花是一种色彩斑斓的花卉，如同彩虹落在了大地上，给人们带来快乐和希望。',
-    language: '花语：幸福、吉祥、美好时光'
+    language: '花语：高尚、纯洁、优雅',
+    image: magnolia
   },
   {
     name: '水仙',
     description: '水仙花是一种清新脱俗的花卉，花朵洁白如雪，香气浓郁，象征着纯洁和吉祥。',
-    language: '花语：纯洁、吉祥、团圆'
-  },
-  {
-    name: '洋甘菊',
-    description: '洋甘菊是一种小巧可爱的花卉，花朵金黄，香气宜人，象征着温暖和安慰。',
-    language: '花语：温暖、安慰、治愈'
-  },
-  {
-    name: '牵牛花',
-    description: '牵牛花是一种生命力顽强的花卉，清晨开放，傍晚闭合，象征着勤劳和坚韧。',
-    language: '花语：勤劳、坚韧、爱情永固'
+    language: '花语：纯洁、吉祥、团圆',
+    image: narcissus
   },
   {
     name: '百合花',
     description: '百合花是一种洁白无瑕的花卉，如同天使的翅膀，给人们带来和平和安宁。',
-    language: '花语：纯洁、神圣、高雅'
+    language: '花语：纯洁、神圣、高雅',
+    image: lily
   },
   {
     name: '茉莉',
     description: '茉莉花是一种香气浓郁的花卉，花朵小巧洁白，象征着纯洁和美好。',
-    language: '花语：纯洁、质朴、忠贞'
+    language: '花语：纯洁、质朴、忠贞',
+    image: jasmine
   },
   {
     name: '菊花',
     description: '菊花是一种坚韧不拔的花卉，深秋开放，象征着高洁和长寿。',
-    language: '花语：高洁、长寿、吉祥'
-  },
-  {
-    name: '葱兰',
-    description: '葱兰是一种清新雅致的花卉，花朵洁白，叶片葱绿，象征着纯洁和优雅。',
-    language: '花语：纯洁、优雅、期待'
-  },
-  {
-    name: '郁金香',
-    description: '郁金香是一种亭亭玉立的花卉，如同热恋中的情侣，相互依偎，传递着爱的力量。',
-    language: '花语：爱的表白、荣誉、永恒'
-  },
-  {
-    name: '鸡蛋花',
-    description: '鸡蛋花是一种优雅的花卉，花朵呈鸡蛋黄和白色，香气浓郁，象征着纯洁和希望。',
-    language: '花语：纯洁、希望、新生'
-  },
-  {
-    name: '鸢尾',
-    description: '鸢尾花是一种高贵典雅的花卉，花瓣形如蝴蝶，色彩斑斓，象征着爱情和友谊。',
-    language: '花语：爱情、友谊、信任'
-  },
-  {
-    name: '鹤望兰',
-    description: '鹤望兰是一种独特的花卉，花朵形如仙鹤，象征着自由和幸福。',
-    language: '花语：自由、幸福、吉祥'
+    language: '花语：高洁、长寿、吉祥',
+    image: chrysanthemum
   }
 ]
 
-// 为每个花卉对象分配对应的图片路径
-const flowers = ref(flowerData.map((flower, index) => {
-  return {
-    ...flower,
-    image: flowerImagePaths.value[index] || ''
-  }
-}))
+// 使用花卉数据
+const flowers = ref(flowerData)
 
-// 使用 Vite 的 import.meta.glob 预加载所有宠物图片
-const petImageModules = import.meta.glob('@/assets/icon/pet/*.png', { eager: true })
-
-// 提取图片路径数组
-const petImagePaths = ref(Object.values(petImageModules).map(module => module.default))
-
-// 随机获取宠物图片
-const getRandomPetImage = () => {
-  const randomIndex = Math.floor(Math.random() * petImagePaths.value.length)
-  return petImagePaths.value[randomIndex]
-}
-
-// 为每个页面的4个角落生成随机宠物图片
-const cornerPetImages = ref(Array(flowers.value.length).fill(null).map(() => {
-  return {
-    topLeft: getRandomPetImage(),
-    topRight: getRandomPetImage(),
-    bottomLeft: getRandomPetImage(),
-    bottomRight: getRandomPetImage()
-  }
-}))
+// 移除宠物图片相关逻辑
 
 onMounted(() => {
   // 先将imgLoadStatus设置为false，显示Loading组件
@@ -187,17 +119,10 @@ onMounted(() => {
   initGSAPAnimations()
   // 实现逐字飞入动画 - 第一页上来就展示，其他页面滚动到对应位置才开始
   initCharacterFlyIn()
-  // 实现图片3D鼠标跟随效果
-  initImage3DAnimation()
 })
 
 onUnmounted(() => {
-  // 移除所有图片的事件监听器
-  const images = document.querySelectorAll('.image-wrapper img')
-  images.forEach(image => {
-    image.removeEventListener('mousemove', () => {})
-    image.removeEventListener('mouseleave', () => {})
-  })
+  // 清理资源
 })
 
 const initGSAPAnimations = () => {
@@ -277,73 +202,7 @@ const initCharacterFlyIn = () => {
   })
 }
 
-// 实现图片3D鼠标跟随效果
-const initImage3DAnimation = () => {
-  // 获取所有图片包装容器
-  const imageWrappers = document.querySelectorAll('.image-wrapper')
-  
-  // 为每个图片包装容器添加效果
-  imageWrappers.forEach(wrapper => {
-    const image = wrapper.querySelector('img')
-    
-    // 设置图片的3D变换样式
-    image.style.transformStyle = 'preserve-3d'
-    image.style.transformOrigin = 'center center'
-    image.style.willChange = 'transform'
-    
-    // 防抖函数，减少事件处理频率
-    let mouseMoveTimeout = null
-    
-    // 添加鼠标移动事件监听，直接绑定到图片上
-    image.addEventListener('mousemove', (e) => {
-      // 清除之前的定时器
-      if (mouseMoveTimeout) {
-        clearTimeout(mouseMoveTimeout)
-      }
-      
-      // 设置新的定时器，延迟处理事件
-      mouseMoveTimeout = setTimeout(() => {
-        // 计算鼠标位置
-        const mouseX = e.clientX
-        const mouseY = e.clientY
-        
-        // 获取窗口尺寸
-        const windowWidth = window.innerWidth
-        const windowHeight = window.innerHeight
-        
-        // 计算旋转角度（范围：-30到30度，反转Y轴方向，增加幅度，让效果感觉向下）
-        const rotateX = (mouseY / windowHeight - 0.5) * -60
-        const rotateY = (mouseX / windowWidth - 0.5) * 60
-        
-        // 使用GSAP实现平滑的3D旋转效果，减少持续时间
-        gsap.to(image, {
-          rotationX: rotateX,
-          rotationY: rotateY,
-          scale: 1.05,
-          duration: 0.3,
-          ease: 'power2.out'
-        })
-      }, 50) // 50ms延迟，减少事件处理频率
-    })
-    
-    // 添加鼠标离开事件监听，直接绑定到图片上
-    image.addEventListener('mouseleave', () => {
-      // 清除定时器
-      if (mouseMoveTimeout) {
-        clearTimeout(mouseMoveTimeout)
-      }
-      
-      // 重置图片状态，减少持续时间
-      gsap.to(image, {
-        rotationX: 0,
-        rotationY: 0,
-        scale: 1,
-        duration: 0.3,
-        ease: 'power2.out'
-      })
-    })
-  })
-}
+
 
 
 </script>
@@ -354,7 +213,7 @@ const initImage3DAnimation = () => {
 .wrapper {
   position: relative;
   width: 100%;
-  height: 1500vh; /* 15个页面，每个页面100vh */
+  height: 700vh; /* 7个页面，每个页面100vh */
 }
 
 /* 页面容器 - 每个页面占满整个视口 */
@@ -365,7 +224,6 @@ const initImage3DAnimation = () => {
   width: 100%;
   height: 100vh;
   overflow: hidden;
-  transition: all 0.3s ease;
   will-change: clip-path;
   backface-visibility: hidden;
   transform: translateZ(0);
@@ -429,7 +287,6 @@ const initImage3DAnimation = () => {
   font-weight: 600;
   color: inherit;
   letter-spacing: -0.02em;
-  transition: all 0.3s ease;
 }
 
 /* 描述段落 */
@@ -523,64 +380,13 @@ const initImage3DAnimation = () => {
   width: auto;
   height: auto;
   object-fit: contain;
-  transition: all 0.3s ease;
-  transform-style: preserve-3d;
-  transform-origin: center center;
-  backface-visibility: hidden;
-  perspective: 1000px;
   position: relative;
   z-index: 1;
 }
 
 
 
-/* 宠物图片样式 */
-.pet-image {
-  position: absolute;
-  z-index: 3;
-  transition: all 0.3s ease;
-  width: 60px;
-  height: 60px;
-}
-
-/* 左上角宠物图片 */
-.pet-image.top-left {
-  top: 20px;
-  left: 20px;
-}
-
-/* 右上角宠物图片 */
-.pet-image.top-right {
-  top: 20px;
-  right: 20px;
-}
-
-/* 左下角宠物图片 */
-.pet-image.bottom-left {
-  bottom: 20px;
-  left: 20px;
-}
-
-/* 右下角宠物图片 */
-.pet-image.bottom-right {
-  bottom: 20px;
-  right: 20px;
-}
-
-/* 宠物图片 */
-.pet-image img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  transition: all 0.3s ease;
-  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
-}
-
-/* 宠物图片悬停效果 */
-.pet-image img:hover {
-  transform: scale(1.2);
-  filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.3));
-}
+/* 移除宠物图片样式 */
 
 /* 主题色 - 动态生成，支持任意数量的页面 */
 .product {

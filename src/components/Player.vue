@@ -94,7 +94,8 @@ onMounted(() => {
         {
           name: "爱错",
           artist: "王力宏",
-          url: "/aicuo.mp3",
+          // url: "/aicuo.mp3",
+          url: "http://119.29.240.233/assets/audio/aicuo.mp3",
           cover: "",
           lrc: "/aicuo.js"
         }
@@ -106,8 +107,15 @@ onMounted(() => {
 
       
       // 浏览器自动播放限制，不再尝试自动播放
-      // 确保初始状态正确设置为false（暂停状态）
+      // 只有在没有持久化状态时才设置默认值
+      // 避免覆盖从localStorage恢复的状态
+      // store.setPlayerState(false);
+      
+      // 尊重浏览器自动播放策略，不在页面加载时自动播放
+      // 即使localStorage中保存的状态为true，由于浏览器限制，音频也不会自动播放
+      // 因此需要将播放状态重置为false，确保UI与实际播放状态一致
       store.setPlayerState(false);
+      console.log('初始化完成，播放状态已重置为false（浏览器自动播放限制）');
     } catch (err) {
       store.musicIsOk = false;
       ElMessage({

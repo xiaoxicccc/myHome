@@ -19,7 +19,9 @@ body {
   padding: 0;
   background-color: #333;
   // overflow: hidden;
-  font-family: "HarmonyOS_Regular", sans-serif;
+  font-family: "AlimamaDaoLiTi", sans-serif;
+  font-weight: 400;
+  box-sizing: border-box;
 }
 
 *,
@@ -48,12 +50,6 @@ a:hover {
   font-family: "Pacifico-Regular";
   font-display: swap;
   src: url("/font/Pacifico-Regular.ttf") format("truetype");
-}
-
-@font-face {
-  font-family: "UnidreamLED";
-  font-display: swap;
-  src: url("/font/UnidreamLED.ttf") format("truetype");
 }
 
 @font-face {

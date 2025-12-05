@@ -6,6 +6,7 @@ export const mainStore = defineStore("main", {
       imgLoadStatus: false, // 壁纸加载状态
       innerWidth: null, // 当前窗口宽度
       coverType: "0", // 壁纸种类
+      prevCoverType: "0", // 之前的壁纸种类，用于关闭播放器时恢复
       bgIndex: 0, // 当前默认壁纸索引
       siteStartShow: false, // 建站日期显示
       musicClick: false, // 音乐链接是否跳转
@@ -77,6 +78,9 @@ export const mainStore = defineStore("main", {
     storage: window.localStorage,
     paths: [
       "coverType",
+      "prevCoverType",
+      "playerState",
+      "musicOpenState",
       "musicVolume",
       "siteStartShow",
       "musicClick",

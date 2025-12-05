@@ -47,10 +47,6 @@
           ref="shoeImageContainer"
           @mousemove="handleMouseMove" 
           @mouseleave="resetRotation"
-          :style="{
-            transform: `perspective(1200px) rotateX(${cardRotation.x}deg) rotateY(${cardRotation.y}deg)`,
-            transformStyle: 'preserve-3d'
-          }"
         >
           <img 
             :src="currentShoe" 
@@ -103,7 +99,7 @@ const thumbnailsContainer = ref(null);
 const thumbnailsWrapper = ref(null);
 const currentIndex = ref(0);
 
-// 所有鞋子列表（包含Air Jordan、Nike和Jordan系列）
+// 所有鞋子列表（只保留Air Jordan系列）
 const ajShoes = ref([
   {
     url: new URL('@/assets/icon/shoe/Aj.svg', import.meta.url).href,
@@ -174,167 +170,6 @@ const ajShoes = ref([
     url: new URL('@/assets/icon/shoe/Air Jordan XXXIV PF.svg', import.meta.url).href,
     name: 'Air Jordan 34',
     description: 'Air Jordan 34于2019年发布，采用了轻量化设计和Eclipse Plate技术，提升了运动性能。'
-  },
-  {
-    url: new URL('@/assets/icon/shoe/Air Huarache Gripp QS.svg', import.meta.url).href,
-    name: 'Air Huarache Gripp QS',
-    description: 'Air Huarache Gripp QS融合了经典Huarache设计与现代抓地力技术，适合多种运动场景。'
-  },
-  {
-    url: new URL('@/assets/icon/shoe/Jordan Aerospace 720.svg', import.meta.url).href,
-    name: 'Jordan Aerospace 720',
-    description: 'Jordan Aerospace 720采用720度全掌气垫，提供极致缓震体验，设计灵感来自太空科技。'
-  },
-  {
-    url: new URL('@/assets/icon/shoe/Jordan Apex-React.svg', import.meta.url).href,
-    name: 'Jordan Apex-React',
-    description: 'Jordan Apex-React融合了React缓震技术与潮流设计，适合日常穿着和轻度运动。'
-  },
-  {
-    url: new URL('@/assets/icon/shoe/Jordan Mars 270 Low.svg', import.meta.url).href,
-    name: 'Jordan Mars 270 Low',
-    description: 'Jordan Mars 270 Low采用270度气垫设计，结合多种经典AJ元素，时尚与性能兼具。'
-  },
-  {
-    url: new URL('@/assets/icon/shoe/Jordan React Elevation PF.svg', import.meta.url).href,
-    name: 'Jordan React Elevation PF',
-    description: 'Jordan React Elevation PF专为篮球运动设计，提供出色的支撑性和反应性。'
-  },
-  {
-    url: new URL('@/assets/icon/shoe/Jordan Westbrook One Take PF.svg', import.meta.url).href,
-    name: 'Jordan Westbrook One Take PF',
-    description: 'Jordan Westbrook One Take PF是威少签名鞋，设计注重快速突破和变向能力。'
-  },
-  {
-    url: new URL('@/assets/icon/shoe/Jordan Why Not Zer0.3 PF.svg', import.meta.url).href,
-    name: 'Jordan Why Not Zer0.3 PF',
-    description: 'Jordan Why Not Zer0.3 PF是威少第三代签名鞋，采用Zoom Air气垫，提供出色缓震。'
-  },
-  {
-    url: new URL('@/assets/icon/shoe/JORDAN ZOOM 92.svg', import.meta.url).href,
-    name: 'Jordan Zoom \'92',
-    description: 'Jordan Zoom \'92融合了90年代经典设计元素与现代Zoom Air缓震技术。'
-  },
-  {
-    url: new URL('@/assets/icon/shoe/Jumpman Diamond Low PF.svg', import.meta.url).href,
-    name: 'Jumpman Diamond Low PF',
-    description: 'Jumpman Diamond Low PF采用钻石切割设计语言，结合React缓震技术，适合篮球运动。'
-  },
-  {
-    url: new URL('@/assets/icon/shoe/KD Trey 5 VIII EP.svg', import.meta.url).href,
-    name: 'KD Trey 5 VIII EP',
-    description: 'KD Trey 5 VIII EP是杜兰特支线签名鞋，提供可靠的性能和舒适的穿着体验。'
-  },
-  {
-    url: new URL('@/assets/icon/shoe/Kyrie 6 By You.svg', import.meta.url).href,
-    name: 'Kyrie 6 By You',
-    description: 'Kyrie 6 By You是可定制版本的欧文6代签名鞋，支持个性化设计。'
-  },
-  {
-    url: new URL('@/assets/icon/shoe/Lebron Soldier Xill ByYou.svg', import.meta.url).href,
-    name: 'LeBron Soldier XIII ByYou',
-    description: 'LeBron Soldier XIII ByYou是可定制版本的詹姆斯士兵系列战靴，提供出色支撑。'
-  },
-  {
-    url: new URL('@/assets/icon/shoe/LeBron XVII PRM EP.svg', import.meta.url).href,
-    name: 'LeBron XVII PRM EP',
-    description: 'LeBron XVII PRM EP是詹姆斯17代签名鞋的高级版本，采用Max Air气垫。'
-  },
-
-  {
-    url: new URL('@/assets/icon/shoe/Nike Air Barrage Low EMB.svg', import.meta.url).href,
-    name: 'Nike Air Barrage Low EMB',
-    description: 'Nike Air Barrage Low EMB复刻了90年代经典篮球鞋，采用刺绣设计元素。'
-  },
-  {
-    url: new URL('@/assets/icon/shoe/Nike Air Flight 89 EMB.svg', import.meta.url).href,
-    name: 'Nike Air Flight 89 EMB',
-    description: 'Nike Air Flight 89 EMB是经典Flight系列的复刻版本，采用刺绣细节设计。'
-  },
-  {
-    url: new URL('@/assets/icon/shoe/Nike Air Max 200 SE.svg', import.meta.url).href,
-    name: 'Nike Air Max 200 SE',
-    description: 'Nike Air Max 200 SE采用200度Air Max气垫，提供舒适缓震和时尚外观。'
-  },
-  {
-    url: new URL('@/assets/icon/shoe/Nike Air Max 2090.svg', import.meta.url).href,
-    name: 'Nike Air Max 2090',
-    description: 'Nike Air Max 2090融合了经典90设计与未来感元素，采用全掌Air Max气垫。'
-  },
-  {
-    url: new URL('@/assets/icon/shoe/Nike Air Max 270 React.svg', import.meta.url).href,
-    name: 'Nike Air Max 270 React',
-    description: 'Nike Air Max 270 React结合了270度Air Max气垫和React缓震技术，提供双重舒适体验。'
-  },
-  {
-    url: new URL('@/assets/icon/shoe/Nike Air Max 270 XX.svg', import.meta.url).href,
-    name: 'Nike Air Max 270 XX',
-    description: 'Nike Air Max 270 XX是270系列的特别版本，采用独特的配色和设计元素。'
-  },
-  {
-    url: new URL('@/assets/icon/shoe/Nike Air Max Alpha Savage.svg', import.meta.url).href,
-    name: 'Nike Air Max Alpha Savage',
-    description: 'Nike Air Max Alpha Savage是一款多功能训练鞋，适合力量训练和有氧运动。'
-  },
-  {
-    url: new URL('@/assets/icon/shoe/Nike Air Max Bella TR 3.svg', import.meta.url).href,
-    name: 'Nike Air Max Bella TR 3',
-    description: 'Nike Air Max Bella TR 3是专为女性设计的训练鞋，提供舒适支撑和时尚外观。'
-  },
-  {
-    url: new URL('@/assets/icon/shoe/Nike Air Max Verona.svg', import.meta.url).href,
-    name: 'Nike Air Max Verona',
-    description: 'Nike Air Max Verona是一款时尚休闲鞋，采用Air Max气垫和潮流设计。'
-  },
-  {
-    url: new URL('@/assets/icon/shoe/Nike Air Monarch IV.svg', import.meta.url).href,
-    name: 'Nike Air Monarch IV',
-    description: 'Nike Air Monarch IV是经典的老爹鞋设计，提供可靠的舒适性和支撑性。'
-  },
-  {
-    url: new URL('@/assets/icon/shoe/nike dunk sb.svg', import.meta.url).href,
-    name: 'Nike Dunk SB',
-    description: 'Nike Dunk SB是专为滑板运动设计的经典鞋款，具有出色的耐磨性和抓地力。'
-  },
-  {
-    url: new URL('@/assets/icon/shoe/Nike Free Trainer 3.0 x MMW.svg', import.meta.url).href,
-    name: 'Nike Free Trainer 3.0 x MMW',
-    description: 'Nike Free Trainer 3.0 x MMW是与Matthew M. Williams合作的限量版训练鞋。'
-  },
-  {
-    url: new URL('@/assets/icon/shoe/Nike Huarache-Type.svg', import.meta.url).href,
-    name: 'Nike Huarache-Type',
-    description: 'Nike Huarache-Type重新诠释了经典Huarache设计，采用现代化的材质和工艺。'
-  },
-  {
-    url: new URL('@/assets/icon/shoe/Nike Joyride Optik.svg', import.meta.url).href,
-    name: 'Nike Joyride Optik',
-    description: 'Nike Joyride Optik采用创新的Joyride缓震技术，提供个性化的舒适体验。'
-  },
-  {
-    url: new URL('@/assets/icon/shoe/Nike Lebron 3 LBJ3.svg', import.meta.url).href,
-    name: 'Nike LeBron 3',
-    description: 'Nike LeBron 3是詹姆斯第三代签名鞋，采用Zoom Air气垫和经典设计。'
-  },
-  {
-    url: new URL('@/assets/icon/shoe/Nike Lebron VII QS.svg', import.meta.url).href,
-    name: 'Nike LeBron VII QS',
-    description: 'Nike LeBron VII QS是詹姆斯7代签名鞋的限量复刻版本，保留了经典设计元素。'
-  },
-  {
-    url: new URL('@/assets/icon/shoe/Nike SB Zoom Blazer Mid PRM.svg', import.meta.url).href,
-    name: 'Nike SB Zoom Blazer Mid PRM',
-    description: 'Nike SB Zoom Blazer Mid PRM是高级版本的SB Blazer，采用优质材质和Zoom Air气垫。'
-  },
-  {
-    url: new URL('@/assets/icon/shoe/Nike Zoom 2K.svg', import.meta.url).href,
-    name: 'Nike Zoom 2K',
-    description: 'Nike Zoom 2K融合了90年代复古设计与现代Zoom Air缓震技术，时尚又舒适。'
-  },
-  {
-    url: new URL('@/assets/icon/shoe/Nike Zoom Moc The 10th.svg', import.meta.url).href,
-    name: 'Nike Zoom Moc The 10th',
-    description: 'Nike Zoom Moc The 10th是纪念款设计，采用独特的无鞋带结构和Zoom Air气垫。'
   }
 ]);
 
@@ -342,14 +177,6 @@ const ajShoes = ref([
 const currentShoe = ref(ajShoes.value[0].url);
 const currentShoeName = ref(ajShoes.value[0].name);
 const currentShoeDescription = ref(ajShoes.value[0].description);
-
-// 卡片旋转状态
-const cardRotation = ref({ x: 0, y: 0 });
-
-// 动画控制变量
-let animationFrameId = null;
-let lastX = 0;
-let lastY = 0;
 
 // 鼠标滚轮处理函数
 const handleWheel = (event) => {
@@ -434,53 +261,8 @@ const goBack = () => {
   router.push('/index');
 };
 
-// 统一的旋转动画函数
-const animateRotation = (targetX, targetY, easeFactor = 0.15) => {
-  // 取消之前的动画帧
-  if (animationFrameId) {
-    cancelAnimationFrame(animationFrameId);
-  }
-  
-  const animate = () => {
-    // 计算当前旋转值与目标值的差值
-    const diffX = targetX - cardRotation.value.x;
-    const diffY = targetY - cardRotation.value.y;
-    
-    // 如果差值很小，直接设置为目标值并结束动画
-    if (Math.abs(diffX) < 0.05 && Math.abs(diffY) < 0.05) {
-      cardRotation.value.x = targetX;
-      cardRotation.value.y = targetY;
-      animationFrameId = null;
-      return;
-    }
-    
-    // 更新旋转值，使用缓动效果
-    cardRotation.value.x += diffX * easeFactor;
-    cardRotation.value.y += diffY * easeFactor;
-    
-    // 继续下一帧动画
-    animationFrameId = requestAnimationFrame(animate);
-  };
-  
-  animate();
-};
-
-// 节流函数
-function throttle(func, limit) {
-  let inThrottle;
-  return function() {
-    const args = arguments;
-    const context = this;
-    if (!inThrottle) {
-      func.apply(context, args);
-      inThrottle = true;
-      setTimeout(() => inThrottle = false, limit);
-    }
-  };
-}
-
-// 鼠标移动事件处理，实现3D摆动效果
-const handleMouseMove = throttle((event) => {
+// 鼠标移动事件处理，使用GSAP实现3D摇摆效果
+const handleMouseMove = (event) => {
   const container = event.currentTarget;
   const rect = container.getBoundingClientRect();
   
@@ -488,24 +270,32 @@ const handleMouseMove = throttle((event) => {
   const x = ((event.clientX - rect.left) / rect.width - 0.5) * 2;
   const y = ((event.clientY - rect.top) / rect.height - 0.5) * 2;
   
-  // 计算目标旋转角度，范围在 -10 到 10 度之间，适当减小旋转范围提升性能
+  // 计算目标旋转角度，范围在 -10 到 10 度之间
   const targetRotateX = y * -10;
   const targetRotateY = x * 10;
   
-  // 如果目标值与当前值相差很小，跳过动画，提升性能
-  if (Math.abs(targetRotateX - cardRotation.value.x) < 0.5 && 
-      Math.abs(targetRotateY - cardRotation.value.y) < 0.5) {
-    return;
-  }
-  
-  // 执行动画
-  animateRotation(targetRotateX, targetRotateY, 0.15);
-}, 16); // 约60fps，限制调用频率
+  // 使用GSAP实现平滑的3D旋转效果，添加overwrite选项解决动画冲突
+  gsap.to(container, {
+    rotationX: targetRotateX,
+    rotationY: targetRotateY,
+    duration: 0.3,
+    ease: "power2.out",
+    transformPerspective: 1200,
+    overwrite: "auto" // 自动覆盖冲突的动画
+  });
+};
 
 // 鼠标离开时重置旋转角度
 const resetRotation = () => {
-  // 使用稍小的缓动系数，实现更平滑的复位效果
-  animateRotation(0, 0, 0.12);
+  // 使用GSAP重置旋转角度，添加overwrite选项解决动画冲突
+  gsap.to(shoeImageContainer.value, {
+    rotationX: 0,
+    rotationY: 0,
+    duration: 0.5,
+    ease: "power2.out",
+    transformPerspective: 1200,
+    overwrite: "auto" // 自动覆盖冲突的动画
+  });
 };
 </script>
 

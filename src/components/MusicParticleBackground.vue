@@ -49,44 +49,60 @@ function initAudio() {
 
 // 连接音频源
 function connectAudioSource(element) {
-    // 如果音频元素没有变化，直接返回
+    // 对于同一个音频元素，只创建一个MediaElementSourceNode
     if (audioElement === element) {
+        console.log('音频元素已连接，直接返回');
         return;
     }
     
-    if (!audioContext) {
-        initAudio();
+    // 如果已经存在音频上下文，直接返回
+    if (audioContext) {
+        console.log('音频上下文已存在，直接返回');
+        return;
     }
-    
-    // 断开之前的连接
-    if (audioSource) {
-        audioSource.disconnect();
-        audioSource = null;
-    }
-    
-    // 更新当前音频元素引用
-    audioElement = element;
     
     try {
-        // 连接新的音频源
+        // 初始化音频上下文
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        audioContext = new AudioContext();
+        
+        // 创建analyser
+        analyser = audioContext.createAnalyser();
+        analyser.fftSize = 512;
+        analyser.smoothingTimeConstant = 0.85;
+        dataArray = new Uint8Array(analyser.frequencyBinCount);
+        
+        // 连接音频源
         audioSource = audioContext.createMediaElementSource(element);
         audioSource.connect(analyser);
-        // 确保音频输出到扬声器
+        
+        // 连接到扬声器
         analyser.connect(audioContext.destination);
+        
+        // 更新音频元素引用
+        audioElement = element;
+        
+        console.log('成功连接音频源');
     } catch (error) {
         console.warn('创建MediaElementSource失败:', error.message);
-        // 重新初始化音频上下文，解决重复连接问题
-        if (audioContext) {
-            audioContext.close();
+        
+        // 如果是重复连接错误，不重置状态，尝试恢复播放
+        if (error.message.includes('already connected')) {
+            console.log('音频元素已连接到其他MediaElementSourceNode，尝试恢复播放');
+            // 恢复播放
+            if (element && element.paused) {
+                element.play().catch(err => {
+                    console.warn('恢复播放失败:', err.message);
+                });
+            }
+        } else {
+            // 其他错误，重置状态
+            if (audioContext) {
+                audioContext.close().catch(() => {});
+            }
             audioContext = null;
-        }
-        // 重新初始化音频系统
-        initAudio();
-        // 重试连接
-        if (audioContext) {
-            audioSource = audioContext.createMediaElementSource(element);
-            audioSource.connect(analyser);
-            analyser.connect(audioContext.destination);
+            audioSource = null;
+            audioElement = null;
         }
     }
 }
@@ -371,7 +387,7 @@ onBeforeUnmount(() => {
   left: 0;
   width: 100%;
   height: 100%;
-  z-index: -1;
+  z-index: 0;
   
   canvas {
     display: block;

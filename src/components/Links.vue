@@ -4,7 +4,7 @@
       <Icon size="20">
         <Link />
       </Icon>
-      <span class="title">功能列表</span>
+      <span class="title">应用中心</span>
     </div>
     <!-- 网站列表 -->
     <Swiper
@@ -23,7 +23,7 @@
         <el-row class="link-all" :gutter="20">
           <el-col v-for="(item, index) in site" :span="8" :key="item">
             <div
-              :class="['item', store.coverType == '4' ? 'particle-card' : 'cards']"
+              :class="['item', (store.coverType == '4' || store.coverType == '5') ? 'particle-card' : 'cards']"
               :style="index < 3 ? 'margin-bottom: 20px' : null"
               @click="jumpLink(item)"
             >

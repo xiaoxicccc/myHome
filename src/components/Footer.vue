@@ -1,5 +1,5 @@
 <template>
-  <footer id="footer" :class="[store.footerBlur ? 'blur' : null, store.coverType == '4' ? 'particle-footer' : null]">
+  <footer id="footer" :class="[store.footerBlur ? 'footer-blur' : null, store.coverType == '4' ? 'particle-footer' : null]">
     <Transition name="fade" mode="out-in">
       <div v-if="!store.playerState || !store.playerLrcShow" class="power">
         <span>
@@ -78,7 +78,7 @@ const siteUrl = computed(() => {
   height: 46px;
   line-height: 46px;
   text-align: center;
-  z-index: 0;
+  z-index: 10;
   font-size: 14px;
   // 文字不换行
   word-break: keep-all;
@@ -108,7 +108,7 @@ const siteUrl = computed(() => {
       }
     }
   }
-  &.blur {
+  &.footer-blur {
     backdrop-filter: blur(10px);
     background: rgb(0 0 0 / 25%);
     font-size: 16px;
@@ -118,7 +118,7 @@ const siteUrl = computed(() => {
     opacity: 0.7;
     backdrop-filter: blur(15px);
   }
-  &.particle-footer.blur {
+  &.particle-footer.footer-blur {
     background-color: #ffffff55;
     opacity: 0.9;
   }
