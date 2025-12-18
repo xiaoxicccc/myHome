@@ -7,6 +7,7 @@ import Index from '../views/index.vue'
 import Flowers from '../views/flowers.vue'
 import Shoes from '../views/Shoes.vue'
 import lens from '../views/lens.vue'
+import ProfileIsland from '../views/ProfileIsland.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -54,6 +55,11 @@ const router = createRouter({
       path: '/lens',
       name: 'lens',
       component: lens
+    },
+    {
+      path: '/profile-island',
+      name: 'profile-island',
+      component: ProfileIsland
     }
   ]
 })

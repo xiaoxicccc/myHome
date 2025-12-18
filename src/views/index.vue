@@ -4,6 +4,10 @@
   <Loading />
   <!-- 壁纸 -->
   <Background @loadComplete="loadComplete" />
+  <!-- 彩蛋元素 -->
+  <div class="easter-egg" v-if="showEasterEgg" ref="easterEggRef">
+    <div class="easter-egg-content">臭弟弟你算个der啊</div>
+  </div>
   <!-- 主界面 -->
   <Transition name="fade" mode="out-in">
     <main id="main" v-if="store.imgLoadStatus">
@@ -91,6 +95,13 @@ const scrollTimer = ref(null);
 // 左右切换按钮显示状态
 const showLeftBtn = ref(false);
 const showRightBtn = ref(false);
+
+// 彩蛋相关
+const showEasterEgg = ref(false);
+const easterEggRef = ref(null);
+// 键盘快捷键序列：连续按下 l, p, b
+const easterEggSequence = ['l', 'p', 'b'];
+const userInputSequence = ref([]);
 
 // 背景图片数组
 const bgImages = [
@@ -221,6 +232,34 @@ const scrollUp = () => {
   router.push('/');
 };
 
+// 彩蛋逻辑
+const handleKeyDown = (event) => {
+  // 只处理字母键，忽略大小写
+  const key = event.key.toLowerCase();
+  if (key >= 'a' && key <= 'z') {
+    // 添加到用户输入序列
+    userInputSequence.value.push(key);
+    
+    // 只保留最近的序列长度，防止数组无限增长
+    if (userInputSequence.value.length > easterEggSequence.length) {
+      userInputSequence.value.shift();
+    }
+    
+    // 检查是否匹配触发序列
+    if (JSON.stringify(userInputSequence.value) === JSON.stringify(easterEggSequence)) {
+      showEasterEgg.value = true;
+      
+      // 3秒后自动隐藏彩蛋
+      setTimeout(() => {
+        showEasterEgg.value = false;
+      }, 3000);
+      
+      // 重置输入序列
+      userInputSequence.value = [];
+    }
+  }
+};
+
 // 监听宽度变化
 watch(
   () => store.innerWidth,
@@ -273,6 +312,9 @@ onMounted(() => {
   
   // 添加鼠标滚轮事件监听，实现向上滚动回到home页
   window.addEventListener("wheel", handleWheel, { passive: false });
+  
+  // 添加键盘事件监听，用于彩蛋触发
+  window.addEventListener("keydown", handleKeyDown);
 
   // 监听当前页面宽度
   getWidth();
@@ -288,6 +330,8 @@ onBeforeUnmount(() => {
   window.removeEventListener("mousemove", handleMouseMove);
   // 移除鼠标滚轮事件监听
   window.removeEventListener("wheel", handleWheel);
+  // 移除键盘事件监听
+  window.removeEventListener("keydown", handleKeyDown);
   // 清除定时器，避免内存泄漏
   if (scrollTimer.value) {
     clearTimeout(scrollTimer.value);
@@ -576,6 +620,75 @@ onBeforeUnmount(() => {
   50% {
     transform: rotate(180deg) translateY(-10px);
     opacity: 1;
+  }
+}
+
+// 彩蛋样式
+.easter-egg {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 9999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  animation: easterEggFadeIn 0.5s ease-out;
+}
+
+.easter-egg-content {
+  font-size: 3rem;
+  font-weight: bold;
+  color: white;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(10px);
+  padding: 1rem 2rem;
+  border-radius: 12px;
+  box-shadow: 0 0 30px rgba(255, 255, 255, 0.3);
+  animation: easterEggBounce 3s ease-in-out;
+  text-align: center;
+  max-width: 90%;
+  word-break: break-word;
+  @media (max-width: 768px) {
+    font-size: 2rem;
+  }
+  @media (max-width: 480px) {
+    font-size: 1.5rem;
+  }
+}
+
+@keyframes easterEggFadeIn {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes easterEggBounce {
+  0% {
+    transform: scale(0) rotate(0deg);
+    opacity: 0;
+  }
+  20% {
+    transform: scale(1.1) rotate(5deg);
+    opacity: 1;
+  }
+  40% {
+    transform: scale(0.9) rotate(-5deg);
+  }
+  60% {
+    transform: scale(1.05) rotate(2deg);
+  }
+  80% {
+    transform: scale(0.95) rotate(-2deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
   }
 }
 </style>

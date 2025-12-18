@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BailanOS - Liquid Glass</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --glass-bg: rgba(255, 255, 255, 0.08);
+            --glass-border: rgba(255, 255, 255, 0.15);
+            --text-primary: rgba(255, 255, 255, 0.95);
+            --text-secondary: rgba(255, 255, 255, 0.6);
+            --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+            --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-drag: none;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+            background-color: #050505;
+            color: white;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- Utilities --- */
+        .hidden { display: none !important; }
+        .fade-out { opacity: 0; pointer-events: none; }
+        .fade-in { opacity: 1; }
+        
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid var(--glass-border);
+            border-radius: 2rem;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.36);
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.2s, background-color 0.2s;
+        }
+
+        .glass-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+            opacity: 0.03;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* --- Background --- */
+        #bg-container {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+        }
+        .bg-layer {
+            position: absolute;
+            inset: 0;
+            background-size: cover;
+            background-position: center;
+            transition: opacity 1.5s ease-in-out;
+        }
+
+        /* --- Loader --- */
+        #loader {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            background: #000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.8s ease, transform 0.8s ease;
+        }
+        .spinner {
+            width: 80px;
+            height: 80px;
+            border: 4px solid rgba(255,255,255,0.1);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        /* --- Layout --- */
+        #app {
+            position: relative;
+            z-index: 10;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 1.5rem;
+            padding-top: 5rem; /* Space for Header & Island */
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Header */
+        header {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 1rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 40;
+            pointer-events: none;
+        }
+        .header-btn {
+            pointer-events: auto;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            backdrop-filter: blur(10px);
+        }
+        .header-btn:hover { background: rgba(255,255,255,0.15); color: white; transform: scale(1.05); }
+        .header-btn:active { transform: scale(0.95); }
+
+        /* Grid */
+        .bento-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: minmax(140px, 1fr) minmax(180px, 1.4fr) minmax(120px, 0.8fr);
+            gap: 1rem;
+            height: 100%;
+            padding-bottom: 0.5rem;
+        }
+
+        /* Widget Contents */
+        .widget-content {
+            position: relative;
+            z-index: 10;
+            height: 100%;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* App Grid */
+        .app-grid-container {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.75rem;
+            align-content: start;
+        }
+        .app-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.4rem;
+            border-radius: 12px;
+            transition: background 0.2s;
+            cursor: pointer;
+        }
+        .app-item:hover { background: rgba(255,255,255,0.05); }
+        .app-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
+            border: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.3s var(--ease-spring);
+            color: rgba(255,255,255,0.9);
+        }
+        .app-item:hover .app-icon { transform: scale(1.1); background: rgba(255,255,255,0.2); }
+        .app-name { font-size: 10px; color: var(--text-secondary); }
+        .app-item:hover .app-name { color: white; }
+
+        /* --- Dynamic Island Music Player --- */
+        #music-player-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 1rem;
+        }
+
+        #dynamic-island {
+            pointer-events: auto;
+            background: #000;
+            border-radius: 50px;
+            width: 100px;
+            height: 36px;
+            transition: all 0.5s var(--ease-spring);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.5);
+            cursor: pointer;
+            color: white;
+        }
+
+        /* Mini Mode States */
+        #dynamic-island.mini { width: 100px; }
+        #dynamic-island.mini:hover { width: 170px; }
+        
+        /* Fullscreen Mode */
+        #dynamic-island.fullscreen {
+            width: min(92vw, 960px);
+            height: min(85vh, 700px);
+            border-radius: 36px;
+            background: rgba(18, 18, 18, 0.92);
+            backdrop-filter: blur(40px);
+            -webkit-backdrop-filter: blur(40px);
+            margin-top: 1.25rem;
+            cursor: default;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        /* Content Visibility */
+        .island-content {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+        .island-content.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* Mini Content */
+        #mini-view {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            height: 100%;
+        }
+        .mini-cover {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            animation: spin 4s linear infinite;
+        }
+        .mini-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            width: 0;
+            overflow: hidden;
+            opacity: 0;
+            transition: all 0.3s;
+        }
+        #dynamic-island.mini:hover .mini-controls { width: auto; opacity: 1; }
+        #dynamic-island.mini:hover .waveform { display: none; }
+
+        /* Fullscreen Content */
+        #full-view {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            padding: 0;
+        }
+
+        .vinyl-container {
+            width: 260px;
+            height: 260px;
+            position: relative;
+            border-radius: 50%;
+            background: #111;
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: spin 8s linear infinite;
+            animation-play-state: paused;
+        }
+        .vinyl-container.playing { animation-play-state: running; }
+        
+        .lyrics-container {
+            flex: 1;
+            overflow-y: auto;
+            position: relative;
+            mask-image: linear-gradient(to bottom, transparent, black 15%, black 85%, transparent);
+            -webkit-mask-image: linear-gradient(to bottom, transparent, black 15%, black 85%, transparent);
+            text-align: center; /* Default center, md:left handled by layout */
+            padding: 2rem 0;
+        }
+        .lyric-line {
+            font-size: 1.1rem;
+            color: rgba(255,255,255,0.4);
+            margin: 1rem 0;
+            transition: all 0.5s;
+            filter: blur(1px);
+        }
+        .lyric-line.active {
+            color: white;
+            transform: scale(1.05);
+            font-weight: 600;
+            filter: blur(0);
+        }
+
+        /* SVG Icons Helper Class */
+        .icon { width: 1em; height: 1em; display: inline-block; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+        /* Media Queries for Grid Layout */
+        @media (max-width: 1024px) {
+            .bento-grid {
+                grid-template-columns: 1fr 1fr;
+                grid-template-rows: auto;
+                overflow-y: auto;
+                display: block; /* Fallback to block for mobile scrolling if needed */
+            }
+            .grid-item { margin-bottom: 1rem; min-height: 200px; }
+            #dynamic-island.fullscreen { width: 100%; height: 100%; margin-top: 0; border-radius: 0; }
+        }
+
+        /* Helper for Grid Spans */
+        .col-span-2 { grid-column: span 2; }
+        .row-span-2 { grid-row: span 2; }
+    </style>
+<script type="importmap">
+{
+  "imports": {
+    "react": "https://aistudiocdn.com/react@^19.2.1",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.1/",
+    "react/": "https://aistudiocdn.com/react@^19.2.1/",
+    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.556.0",
+    "three": "https://aistudiocdn.com/three@^0.181.2",
+    "framer-motion": "https://aistudiocdn.com/framer-motion@^12.23.25"
+  }
+}
+</script>
+</head>
+<body>
+
+    <!-- Background Layer -->
+    <div id="bg-container"></div>
+    
+    <!-- Decorative Blobs -->
+    <div style="position:fixed; top:20%; left:20%; width:400px; height:400px; background:rgba(147, 51, 234, 0.2); filter:blur(100px); border-radius:50%; z-index:0; animation: pulse 8s infinite alternate;"></div>
+    <div style="position:fixed; bottom:20%; right:20%; width:500px; height:500px; background:rgba(59, 130, 246, 0.15); filter:blur(120px); border-radius:50%; z-index:0;"></div>
+
+    <!-- Header -->
+    <header>
+        <div class="glass-card" style="padding: 0.5rem 1rem; border-radius: 99px !important; display: flex; align-items: center; gap: 0.5rem; background: rgba(0,0,0,0.3);">
+            <span style="display:flex; width:8px; height:8px;"><span style="position:absolute; width:8px; height:8px; background:#22c55e; border-radius:50%; opacity:0.75; animation: ping 1s cubic-bezier(0,0,0.2,1) infinite;"></span><span style="position:relative; width:8px; height:8px; background:#22c55e; border-radius:50%;"></span></span>
+            <span style="font-size:10px; font-weight:700; letter-spacing:0.2em; opacity:0.8;">BAILAN.OS</span>
+        </div>
+        <div style="display: flex; gap: 0.75rem; pointer-events: auto;">
+            <button class="header-btn" id="btn-bg">
+                <svg class="icon" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+            </button>
+            <button class="header-btn" style="background:rgba(239,68,68,0.1); color:#fca5a5; border-color:rgba(239,68,68,0.2);">
+                <svg class="icon" viewBox="0 0 24 24"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path><line x1="12" y1="2" x2="12" y2="12"></line></svg>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main App Grid -->
+    <div id="app">
+        <main class="bento-grid">
+            
+            <!-- 1. Clock & Weather -->
+            <div class="glass-card col-span-2 grid-item">
+                <div class="widget-content" style="padding: 1.5rem; justify-content: center;">
+                    <div style="position: absolute; right: -20px; top: -20px; width: 120px; height: 120px; background: rgba(251, 146, 60, 0.2); filter: blur(40px); border-radius: 50%;"></div>
+                    <div style="display: flex; justify-content: space-between; align-items: flex-end; position: relative; z-index: 2;">
+                        <div>
+                            <div id="clock" style="font-size: 3.5rem; font-weight: 200; line-height: 1; letter-spacing: -0.05em; font-variant-numeric: tabular-nums;">
+                                00<span style="animation: pulse 2s infinite">:</span>00
+                            </div>
+                            <div id="date" style="font-size: 0.875rem; color: var(--text-secondary); font-weight: 500; margin-top: 0.5rem;">LOADING...</div>
+                        </div>
+                        <div style="text-align: right;">
+                            <svg class="icon" style="width: 40px; height: 40px; opacity: 0.9; margin-bottom: 0.25rem;" viewBox="0 0 24 24"><path d="M17.5 19c0-1.7-1.3-3-3-3h-11a4 4 0 1 1 .9-7.9 4 4 0 0 1 7.4-1.6c.7-.6 1.7-1 2.7-1a5 5 0 0 1 5 5c0 2.8-2.2 5-5 5z"></path></svg>
+                            <div style="font-size: 2.25rem; font-weight: 300; line-height: 1;">24°</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. System Stats -->
+            <div class="glass-card grid-item">
+                <div class="widget-content" style="padding: 1.25rem; justify-content: space-between;">
+                    <div style="font-size: 10px; font-weight: 700; letter-spacing: 0.1em; color: var(--text-secondary); display:flex; gap:6px; align-items:center;">
+                        <svg class="icon" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg> SYSTEM
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                        <div>
+                            <div style="display:flex; justify-content:space-between; font-size:10px; color:var(--text-secondary); margin-bottom:4px;"><span>CPU</span><span>32%</span></div>
+                            <div style="height:4px; background:rgba(255,255,255,0.1); border-radius:99px; overflow:hidden;"><div style="width:32%; height:100%; background:#4ade80; border-radius:99px;"></div></div>
+                        </div>
+                        <div>
+                            <div style="display:flex; justify-content:space-between; font-size:10px; color:var(--text-secondary); margin-bottom:4px;"><span>RAM</span><span>64%</span></div>
+                            <div style="height:4px; background:rgba(255,255,255,0.1); border-radius:99px; overflow:hidden;"><div style="width:64%; height:100%; background:#60a5fa; border-radius:99px;"></div></div>
+                        </div>
+                        <div>
+                            <div style="display:flex; justify-content:space-between; font-size:10px; color:var(--text-secondary); margin-bottom:4px;"><span>PWR</span><span>92%</span></div>
+                            <div style="height:4px; background:rgba(255,255,255,0.1); border-radius:99px; overflow:hidden;"><div style="width:92%; height:100%; background:#fff; border-radius:99px;"></div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. Profile -->
+            <div class="glass-card row-span-2 grid-item">
+                <div class="widget-content" style="padding: 1.5rem; align-items: center; justify-content: space-between; text-align: center;">
+                     <div style="position: relative; margin-top: 0.5rem;">
+                         <img src="https://picsum.photos/id/64/300/300" style="width: 80px; height: 80px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.2); object-fit: cover;" alt="avatar">
+                         <div style="position: absolute; bottom: 0; right: 0; width: 16px; height: 16px; background: #22c55e; border: 2px solid #000; border-radius: 50%;"></div>
+                     </div>
+                     <div>
+                         <h2 style="font-size: 1.125rem; font-weight: 700; margin: 0;">bailan</h2>
+                         <p style="font-size: 9px; letter-spacing: 0.2em; color: var(--text-secondary); margin: 4px 0 0 0;">DEVELOPER</p>
+                     </div>
+                     <div style="display: flex; gap: 0.5rem;">
+                         <button class="header-btn"><svg class="icon" viewBox="0 0 24 24"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg></button>
+                         <button class="header-btn"><svg class="icon" viewBox="0 0 24 24"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"></path></svg></button>
+                     </div>
+                     <div style="width: 100%; background: rgba(255,255,255,0.05); border-radius: 12px; padding: 0.75rem; border: 1px solid rgba(255,255,255,0.05); text-align: left;">
+                         <p style="font-size: 10px; color: var(--text-secondary); line-height: 1.5; margin: 0;">"Explore the boundaries of digital space."</p>
+                     </div>
+                </div>
+            </div>
+
+            <!-- 4. App Center -->
+            <div class="glass-card col-span-2 grid-item">
+                <div class="widget-content" style="padding: 1.25rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                        <div style="font-size: 10px; font-weight: 700; letter-spacing: 0.05em; color: var(--text-secondary); display:flex; gap:6px; align-items:center;">
+                            <svg class="icon" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg> APPS
+                        </div>
+                        <div id="app-pagination" style="display: flex; gap: 4px;"></div>
+                    </div>
+                    <div id="app-grid" class="app-grid-container" style="flex: 1;"></div>
+                    <!-- Hover Nav Areas -->
+                    <div onclick="prevAppPage()" style="position:absolute; left:0; top:0; bottom:0; width:30px; display:flex; align-items:center; justify-content:center; opacity:0; transition:opacity 0.2s; cursor:pointer; background:linear-gradient(to right, rgba(0,0,0,0.2), transparent); z-index:20;">
+                        <svg class="icon" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                    </div>
+                    <div onclick="nextAppPage()" style="position:absolute; right:0; top:0; bottom:0; width:30px; display:flex; align-items:center; justify-content:center; opacity:0; transition:opacity 0.2s; cursor:pointer; background:linear-gradient(to left, rgba(0,0,0,0.2), transparent); z-index:20;">
+                        <svg class="icon" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                    </div>
+                </div>
+                <style>.glass-card:hover > div[onclick] { opacity: 1; }</style>
+            </div>
+
+            <!-- 5. Featured Photo -->
+            <div class="glass-card grid-item">
+                <div style="position: absolute; inset: 0;">
+                    <img src="https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&q=80&w=600" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.8; transition: transform 0.7s;" onmouseover="this.style.transform='scale(1.1)'; this.style.opacity='1'" onmouseout="this.style.transform='scale(1)'; this.style.opacity='0.8'">
+                    <div style="position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);"></div>
+                    <div style="position: absolute; bottom: 1rem; left: 1rem;">
+                        <div style="font-size: 9px; font-weight: 700; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 0.1em;">Featured</div>
+                        <div style="font-size: 0.875rem; font-weight: 500;">Inspiration</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 6. Quote -->
+            <div class="glass-card col-span-2 grid-item">
+                <div class="widget-content" style="padding: 1.5rem; justify-content: center;">
+                    <svg class="icon" style="position: absolute; right: -10px; bottom: -20px; width: 80px; height: 80px; opacity: 0.05; transform: rotate(12deg);" viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+                    <blockquote style="position: relative; z-index: 10;">
+                        <p style="font-size: 0.95rem; font-style: italic; font-family: serif; color: rgba(255,255,255,0.9); line-height: 1.6;">“我们探索规律，与规律有何相干？”</p>
+                        <footer style="margin-top: 0.5rem; font-size: 10px; color: var(--text-secondary); display: flex; align-items: center; gap: 0.5rem;"><span style="width: 12px; height: 1px; background: rgba(255,255,255,0.5);"></span>「 三体 」</footer>
+                    </blockquote>
+                </div>
+            </div>
+
+            <!-- 7. Schedule -->
+            <div class="glass-card col-span-2 grid-item">
+                <div class="widget-content" style="padding: 1rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                        <div style="font-size: 10px; font-weight: 700; letter-spacing: 0.05em; color: var(--text-secondary); display:flex; gap:6px; align-items:center;">
+                            <svg class="icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg> SCHEDULE
+                        </div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+                        <div style="padding: 0.5rem; background: rgba(255,255,255,0.05); border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
+                            <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 2px;">
+                                <div style="width: 6px; height: 6px; background: #f87171; border-radius: 50%;"></div>
+                                <span style="font-size: 10px; color: var(--text-secondary);">10:00 AM</span>
+                            </div>
+                            <div style="font-size: 11px; font-weight: 500;">Product Launch</div>
+                        </div>
+                        <div style="padding: 0.5rem; background: rgba(255,255,255,0.05); border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
+                            <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 2px;">
+                                <div style="width: 6px; height: 6px; background: #60a5fa; border-radius: 50%;"></div>
+                                <span style="font-size: 10px; color: var(--text-secondary);">02:00 PM</span>
+                            </div>
+                            <div style="font-size: 11px; font-weight: 500;">Team Sync</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+        
+        <footer style="text-align: center; font-size: 9px; color: rgba(255,255,255,0.1); text-transform: uppercase; letter-spacing: 0.2em; margin-top: 0.5rem;">
+            BailanOS © 2025
+        </footer>
+    </div>
+
+    <!-- Music Player Container -->
+    <div id="music-player-container">
+        <div id="dynamic-island" class="mini">
+            
+            <!-- Mini View Content -->
+            <div id="mini-view" class="island-content active">
+                <img src="https://picsum.photos/500/500" class="mini-cover" id="mini-cover-img">
+                <div class="mini-controls">
+                    <button class="header-btn" style="width: 24px; height: 24px; border: none; background: transparent;" onclick="event.stopPropagation()"><svg class="icon" viewBox="0 0 24 24"><polygon points="19 20 9 12 19 4 19 20"></polygon><line x1="5" y1="19" x2="5" y2="5"></line></svg></button>
+                    <button class="header-btn" style="width: 28px; height: 28px; background: white; color: black; border: none;" id="mini-play-btn" onclick="togglePlay(event)"><svg class="icon" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg></button>
+                    <button class="header-btn" style="width: 24px; height: 24px; border: none; background: transparent;" onclick="event.stopPropagation()"><svg class="icon" viewBox="0 0 24 24"><polygon points="5 4 15 12 5 20 5 4"></polygon><line x1="19" y1="5" x2="19" y2="19"></line></svg></button>
+                </div>
+                <div class="waveform" style="display: flex; align-items: center; gap: 2px; height: 12px;">
+                     <div style="width: 2px; background: #4ade80; height: 40%; border-radius: 9px; animation: wave 0.8s ease-in-out infinite alternate;"></div>
+                     <div style="width: 2px; background: #4ade80; height: 60%; border-radius: 9px; animation: wave 0.8s ease-in-out infinite alternate 0.1s;"></div>
+                     <div style="width: 2px; background: #4ade80; height: 100%; border-radius: 9px; animation: wave 0.8s ease-in-out infinite alternate 0.2s;"></div>
+                     <div style="width: 2px; background: #4ade80; height: 50%; border-radius: 9px; animation: wave 0.8s ease-in-out infinite alternate 0.3s;"></div>
+                </div>
+                <style>@keyframes wave { 0% { height: 30%; opacity: 0.5; } 100% { height: 100%; opacity: 1; } }</style>
+            </div>
+
+            <!-- Full View Content -->
+            <div id="full-view" class="island-content">
+                <!-- Header -->
+                <div style="display: flex; justify-content: space-between; padding: 1.5rem 2rem; align-items: center;">
+                    <button class="header-btn" onclick="minimizePlayer(event)"><svg class="icon" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg></button>
+                    <span style="font-size: 10px; font-weight: 700; letter-spacing: 0.2em; color: rgba(255,255,255,0.3); text-transform: uppercase;">Now Playing</span>
+                    <button class="header-btn"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle><circle cx="5" cy="12" r="1"></circle></svg></button>
+                </div>
+
+                <!-- Main Body -->
+                <div style="flex: 1; display: flex; flex-direction: row; align-items: center; gap: 2rem; padding: 0 3rem; min-height: 0;">
+                    <!-- Left: Vinyl -->
+                    <div style="flex: 0 0 auto;">
+                        <div class="vinyl-container" id="vinyl">
+                            <img src="https://picsum.photos/500/500" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.8; border-radius: 50%;">
+                            <div style="position: absolute; inset: 0; background: repeating-radial-gradient(#111 0, #111 2px, transparent 3px, transparent 4px); opacity: 0.4; border-radius: 50%;"></div>
+                            <div style="position: absolute; width: 30%; height: 30%; background: #000; border-radius: 50%; border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center;">
+                                <img src="https://picsum.photos/500/500" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%; opacity: 0.6;">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Right: Info & Lyrics -->
+                    <div style="flex: 1; height: 360px; display: flex; flex-direction: column;">
+                         <div style="text-align: left; margin-bottom: 1rem;">
+                             <h2 style="font-size: 1.5rem; margin: 0; font-weight: 700;">Ethereal Dream</h2>
+                             <p style="font-size: 0.875rem; color: rgba(255,255,255,0.5); margin: 0.25rem 0 0 0;">Bailan Records</p>
+                         </div>
+                         <div style="height: 1px; background: rgba(255,255,255,0.1); width: 100%;"></div>
+                         <div class="lyrics-container" id="lyrics-container">
+                             <!-- Lyrics injected via JS -->
+                         </div>
+                    </div>
+                </div>
+
+                <!-- Footer Controls -->
+                <div style="padding: 2rem 3rem;">
+                    <!-- Progress -->
+                    <div style="margin-bottom: 1.5rem; cursor: pointer;" id="progress-container">
+                        <div style="height: 4px; background: rgba(255,255,255,0.1); border-radius: 99px; overflow: hidden; position: relative;">
+                            <div id="progress-bar" style="width: 0%; height: 100%; background: white; border-radius: 99px;"></div>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-size: 10px; color: rgba(255,255,255,0.3); margin-top: 6px; font-family: monospace;">
+                            <span id="time-current">0:00</span>
+                            <span id="time-total">0:00</span>
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr auto 1fr; align-items: center;">
+                        <div style="display: flex; gap: 1rem;">
+                            <button class="header-btn" style="border: none; background: transparent;"><svg class="icon" viewBox="0 0 24 24"><polyline points="16 3 21 3 21 8"></polyline><line x1="4" y1="20" x2="21" y2="3"></line><polyline points="21 16 21 21 16 21"></polyline><line x1="15" y1="15" x2="21" y2="21"></line><line x1="4" y1="4" x2="9" y2="9"></line></svg></button>
+                        </div>
+                        
+                        <div style="display: flex; align-items: center; gap: 1.5rem;">
+                             <button style="background:none; border:none; color:white; cursor:pointer;"><svg class="icon" style="width:24px; height:24px;" viewBox="0 0 24 24"><polygon points="19 20 9 12 19 4 19 20"></polygon><line x1="5" y1="19" x2="5" y2="5"></line></svg></button>
+                             <button id="main-play-btn" onclick="togglePlay(event)" style="width: 56px; height: 56px; border-radius: 50%; background: white; color: black; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: transform 0.1s;">
+                                 <svg class="icon" style="width: 24px; height: 24px; fill: currentColor;" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                             </button>
+                             <button style="background:none; border:none; color:white; cursor:pointer;"><svg class="icon" style="width:24px; height:24px;" viewBox="0 0 24 24"><polygon points="5 4 15 12 5 20 5 4"></polygon><line x1="19" y1="5" x2="19" y2="19"></line></svg></button>
+                        </div>
+
+                        <div style="display: flex; justify-content: flex-end; align-items: center; gap: 0.5rem;">
+                             <svg class="icon" viewBox="0 0 24 24" style="font-size: 14px; opacity: 0.5;"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+                             <input type="range" min="0" max="1" step="0.05" value="0.5" oninput="setVolume(this.value)" style="width: 80px; accent-color: white;">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Boot Loader -->
+    <div id="loader">
+        <div class="spinner"></div>
+        <h1 style="margin-top: 2rem; font-weight: 300; letter-spacing: 0.3em; color: white; animation: fadeUp 1s ease forwards; opacity: 0; transform: translateY(20px);">BAILAN<span style="font-weight: 700;">.OS</span></h1>
+        <style>@keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }</style>
+    </div>
+
+    <script>
+        // --- Data ---
+        const APPS = [
+            { name: '花语秘境', icon: '<path d="M17.5 19c0-1.7-1.3-3-3-3h-11a4 4 0 1 1 .9-7.9 4 4 0 0 1 7.4-1.6c.7-.6 1.7-1 2.7-1a5 5 0 0 1 5 5c0 2.8-2.2 5-5 5z"></path>' },
+            { name: '掌上视界', icon: '<rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line>' },
+            { name: '殿堂传奇', icon: '<rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect><rect x="9" y="9" width="6" height="6"></rect><line x1="9" y1="1" x2="9" y2="4"></line><line x1="15" y1="1" x2="15" y2="4"></line><line x1="9" y1="20" x2="9" y2="23"></line><line x1="15" y1="20" x2="15" y2="23"></line><line x1="20" y1="9" x2="23" y2="9"></line><line x1="20" y1="14" x2="23" y2="14"></line><line x1="1" y1="9" x2="4" y2="9"></line><line x1="1" y1="14" x2="4" y2="14"></line>' },
+            { name: '步履之间', icon: '<circle cx="12" cy="12" r="10"></circle><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon>' },
+            { name: '云端漫步', icon: '<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline>' },
+            { name: '时光印记', icon: '<rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line>' },
+            { name: '光影流年', icon: '<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle>' },
+            { name: '听觉盛宴', icon: '<path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle>' },
+            { name: '系统设置', icon: '<circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>' },
+            { name: '探索之旅', icon: '<polygon points="3 11 22 2 13 21 11 13 3 11"></polygon>' },
+            { name: '画廊', icon: '<rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline>' },
+            { name: '即时通讯', icon: '<path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>' },
+             { name: '代码仓库', icon: '<polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline>' },
+            { name: '终端', icon: '<polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line>' },
+            { name: '数据库', icon: '<ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>' },
+            { name: '网络', icon: '<circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>' },
+        ];
+
+        const BACKGROUNDS = [
+            "radial-gradient(circle at 50% 50%, #2b32b2 0%, #1488cc 100%)",
+            "radial-gradient(circle at 50% 50%, #cc2b5e 0%, #753a88 100%)",
+            "radial-gradient(circle at 50% 50%, #134e5e 0%, #71b280 100%)",
+            "radial-gradient(circle at 50% 50%, #0f2027 0%, #203a43 50%, #2c5364 100%)",
+            "linear-gradient(to top, #30cfd0 0%, #330867 100%)",
+            "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+        ];
+
+        const LYRICS = [
+            { time: 0, text: "Wait for the moment..." },
+            { time: 4, text: "(Instrumental Intro)" },
+            { time: 10, text: "Floating in the digital sea" },
+            { time: 16, text: "Pixels dancing, wild and free" },
+            { time: 22, text: "Can you hear the silence call?" },
+            { time: 28, text: "Watch the liquid colors fall" },
+            { time: 34, text: "..." },
+            { time: 38, text: "Breathe in the light" },
+            { time: 42, text: "Fade into the night" },
+            { time: 48, text: "Everything is connected" },
+            { time: 54, text: "In this space we selected" },
+            { time: 60, text: "(Music fades)" },
+            { time: 65, text: "Just close your eyes" },
+            { time: 70, text: "And drift away..." },
+        ];
+
+        // --- Logic ---
+        
+        let appPage = 0;
+        let bgIndex = 0;
+        let isPlaying = false;
+        let isPlayerExpanded = false;
+        
+        // Audio
+        const audio = new Audio("https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=lofi-study-112191.mp3");
+        audio.loop = true;
+
+        // --- Init ---
+        window.addEventListener('DOMContentLoaded', () => {
+            // Boot Animation
+            setTimeout(() => {
+                document.getElementById('loader').classList.add('fade-out');
+                setTimeout(() => document.getElementById('loader').remove(), 1000);
+            }, 2500);
+
+            renderApps();
+            renderLyrics();
+            setBg(0);
+            startClock();
+            
+            // Background Switcher
+            document.getElementById('btn-bg').addEventListener('click', () => {
+                bgIndex = (bgIndex + 1) % BACKGROUNDS.length;
+                setBg(bgIndex);
+            });
+
+            // Player Interaction
+            const island = document.getElementById('dynamic-island');
+            island.addEventListener('click', (e) => {
+                if (!isPlayerExpanded) {
+                    expandPlayer();
+                }
+            });
+
+            // Audio Events
+            audio.addEventListener('timeupdate', updateProgress);
+        });
+
+        function startClock() {
+            const clockEl = document.getElementById('clock');
+            const dateEl = document.getElementById('date');
+            
+            const update = () => {
+                const now = new Date();
+                const hrs = String(now.getHours()).padStart(2, '0');
+                const mins = String(now.getMinutes()).padStart(2, '0');
+                clockEl.innerHTML = `${hrs}<span style="animation: pulse 2s infinite">:</span>${mins}`;
+                
+                dateEl.textContent = new Intl.DateTimeFormat('zh-CN', { 
+                    year: 'numeric', month: 'short', day: 'numeric', weekday: 'short' 
+                }).format(now);
+            };
+            setInterval(update, 1000);
+            update();
+        }
+
+        function setBg(index) {
+            const container = document.getElementById('bg-container');
+            const newLayer = document.createElement('div');
+            newLayer.className = 'bg-layer';
+            newLayer.style.backgroundImage = BACKGROUNDS[index];
+            newLayer.style.opacity = '0';
+            
+            container.appendChild(newLayer);
+            
+            // Trigger reflow
+            void newLayer.offsetWidth;
+            newLayer.style.opacity = '1';
+
+            // Clean up old layers
+            if (container.children.length > 1) {
+                setTimeout(() => {
+                    container.removeChild(container.firstChild);
+                }, 1500);
+            }
+        }
+
+        // --- Apps ---
+        function renderApps() {
+            const grid = document.getElementById('app-grid');
+            const pagination = document.getElementById('app-pagination');
+            const itemsPerPage = 8;
+            const start = appPage * itemsPerPage;
+            const pageApps = APPS.slice(start, start + itemsPerPage);
+            const totalPages = Math.ceil(APPS.length / itemsPerPage);
+
+            // Render Items
+            grid.innerHTML = pageApps.map(app => `
+                <div class="app-item">
+                    <div class="app-icon">
+                        <svg class="icon" style="width:24px; height:24px;" viewBox="0 0 24 24">${app.icon}</svg>
+                    </div>
+                    <span class="app-name">${app.name}</span>
+                </div>
+            `).join('');
+
+            // Render Dots
+            pagination.innerHTML = Array.from({length: totalPages}).map((_, i) => `
+                <div style="height:4px; border-radius:2px; transition:all 0.3s; background:${i === appPage ? 'white' : 'rgba(255,255,255,0.2)'}; width:${i === appPage ? '16px' : '4px'}"></div>
+            `).join('');
+        }
+
+        function nextPage() {
+            if ((appPage + 1) * 8 < APPS.length) {
+                appPage++;
+                renderApps();
+            }
+        }
+
+        window.nextAppPage = nextPage;
+        window.prevAppPage = () => {
+            if (appPage > 0) {
+                appPage--;
+                renderApps();
+            }
+        };
+
+        // --- Music Player Logic ---
+        function togglePlay(e) {
+            e.stopPropagation();
+            if (isPlaying) {
+                audio.pause();
+                document.getElementById('vinyl').classList.remove('playing');
+            } else {
+                audio.play();
+                document.getElementById('vinyl').classList.add('playing');
+            }
+            isPlaying = !isPlaying;
+            updatePlayIcons();
+        }
+
+        function updatePlayIcons() {
+            const path = isPlaying ? '<rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect>' : '<polygon points="5 3 19 12 5 21 5 3"></polygon>';
+            document.getElementById('mini-play-btn').innerHTML = `<svg class="icon" viewBox="0 0 24 24" style="fill:currentColor">${path}</svg>`;
+            document.getElementById('main-play-btn').innerHTML = `<svg class="icon" style="width:24px; height:24px; fill:currentColor" viewBox="0 0 24 24">${path}</svg>`;
+        }
+
+        function expandPlayer() {
+            isPlayerExpanded = true;
+            const island = document.getElementById('dynamic-island');
+            const miniView = document.getElementById('mini-view');
+            const fullView = document.getElementById('full-view');
+
+            island.classList.remove('mini');
+            island.classList.add('fullscreen');
+            
+            miniView.classList.remove('active');
+            
+            setTimeout(() => {
+                fullView.classList.add('active');
+            }, 300); // Wait for expansion
+        }
+
+        window.minimizePlayer = (e) => {
+            e.stopPropagation();
+            isPlayerExpanded = false;
+            const island = document.getElementById('dynamic-island');
+            const miniView = document.getElementById('mini-view');
+            const fullView = document.getElementById('full-view');
+
+            fullView.classList.remove('active');
+            island.classList.remove('fullscreen');
+            island.classList.add('mini');
+
+            setTimeout(() => {
+                miniView.classList.add('active');
+            }, 300);
+        };
+
+        window.setVolume = (val) => {
+            audio.volume = val;
+        };
+
+        function renderLyrics() {
+            const container = document.getElementById('lyrics-container');
+            container.innerHTML = LYRICS.map(line => `<div class="lyric-line" data-time="${line.time}">${line.text}</div>`).join('');
+        }
+
+        function updateProgress() {
+            const cur = audio.currentTime;
+            const dur = audio.duration || 1;
+            
+            // Bar
+            document.getElementById('progress-bar').style.width = `${(cur / dur) * 100}%`;
+            
+            // Time Text
+            const fmt = t => {
+                const m = Math.floor(t/60);
+                const s = Math.floor(t%60).toString().padStart(2,'0');
+                return `${m}:${s}`;
+            };
+            document.getElementById('time-current').textContent = fmt(cur);
+            document.getElementById('time-total').textContent = fmt(dur);
+
+            // Lyrics
+            const lines = document.querySelectorAll('.lyric-line');
+            let activeIdx = -1;
+            
+            lines.forEach((line, idx) => {
+                const time = parseFloat(line.dataset.time);
+                if (cur >= time) activeIdx = idx;
+                line.classList.remove('active');
+            });
+
+            if (activeIdx !== -1) {
+                const activeLine = lines[activeIdx];
+                activeLine.classList.add('active');
+                if (isPlayerExpanded) {
+                    activeLine.scrollIntoView({ behavior: "smooth", block: "center" });
+                }
+            }
+        }
+
+        // Seek
+        document.getElementById('progress-container').addEventListener('click', (e) => {
+            const rect = e.currentTarget.getBoundingClientRect();
+            const pct = (e.clientX - rect.left) / rect.width;
+            audio.currentTime = pct * audio.duration;
+        });
+
+    </script>
+</body>
+</html>
